@@ -266,7 +266,7 @@ def DesignbyID(design_id):
 
         design = Design(**cursor.fetchone())
 
-        cursor.execute('SELECT n.name FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s ' \
+        cursor.execute('SELECT n.name FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
             'AND t.tag=n.id', (design_id,))
         if cursor.rowcount > 0:
             design.tags = []
@@ -274,7 +274,7 @@ def DesignbyID(design_id):
             for row in rows:
                 design.tags.append(row['name'])
 
-        cursor.execute('SELECT screenname FROM gal_favorites WHERE designid=%s ' \
+        cursor.execute('SELECT screenname FROM gal_favorites WHERE designid=%s '
             'ORDER BY screenname', (design_id,))
         if cursor.rowcount > 0:
             design.fans = []
@@ -306,7 +306,8 @@ def DesignByDesigner(name, start, num):
 
     gal_utils.db = get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base + 'WHERE owner=%s ORDER BY whenuploaded DESC LIMIT %s,%s', (name,start,num))
+        cursor.execute(Design.Query_base + 'WHERE owner=%s ORDER BY whenuploaded ' 
+            'DESC LIMIT %s,%s', (name,start,num))
         return complete(cursor)
 
 def DesignByTitle(start, num):
@@ -359,8 +360,8 @@ def DesignFavorites(name, start, num):
 
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base_d + ', gal_favorites AS f WHERE ' \
-            'f.screenname=%s AND f.designid = d.designid ORDER BY d.designid ' \
+        cursor.execute(Design.Query_base_d + ', gal_favorites AS f WHERE '
+            'f.screenname=%s AND f.designid = d.designid ORDER BY d.designid '
             'DESC LIMIT %s,%s', (name,start,num))
         return complete(cursor)
 
