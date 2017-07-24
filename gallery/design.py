@@ -343,12 +343,13 @@ def DesignByRandom(seed, start, num):
         return complete(cursor)
 
 def DesignByDate(oldest, start, num):
-    if type(start) is not int or type(num) is not int or start < 0 or num < 1:
+    if type(oldest) is not bool or type(start) is not int or type(num) is not int or \
+        start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
-    query = Design.Query_base + 'ORDER BY whenuploaded LIMIT %s,%s' if oldest \
-                            else 'ORDER BY whenuploaded DESC LIMIT %s,%s'
+    query = Design.Query_base + ('ORDER BY whenuploaded LIMIT %s,%s' if oldest
+                            else 'ORDER BY whenuploaded DESC LIMIT %s,%s')
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)

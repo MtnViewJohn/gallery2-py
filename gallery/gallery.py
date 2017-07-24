@@ -45,6 +45,20 @@ def get_favorites(name, start, num):
 
     return complete(design.DesignFavorites(name, start, num))
 
+@app.route('/oldest/<int:start>/<int:num>')
+def get_oldest(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,'Bad design count')
+
+    return complete(design.DesignByDate(True, start, num))
+
+@app.route('/newest/<int:start>/<int:num>')
+def get_newest(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,'Bad design count')
+
+    return complete(design.DesignByDate(False, start, num))
+
 @app.route('/title/<int:start>/<int:num>')
 def get_titles(start, num):
     if num < 1 or num > 50:
