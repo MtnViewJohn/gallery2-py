@@ -10,7 +10,7 @@ def get_db():
     return db
 
 def legalOwner(owner):
-    if type(owner) is not unicode: return False
+    if not isinstance(owner, unicode): return False
     if owner == '': return False
     try:
         pos = next(i for i,x in enumerate(owner) if x in '#&;:`|*?~<>^()[]{}$\\@%,/\'"- \t\f\r\n')
@@ -19,7 +19,7 @@ def legalOwner(owner):
         return True
 
 def legalVariation(var):
-    if type(var) is not unicode: return False
+    if not isinstance(var, unicode): return False
     if len(var) > 6: return False
     for c in var:
         if not c.isalpha(): return False
@@ -39,7 +39,7 @@ def validateLicense(data):
     return True
 
 def legalFilePath(filepath, cfdgfile):
-    if type(filepath) is not unicode: return False
+    if not isinstance(filepath, unicode): return False
     if filepath.find('..') != -1: return False
     if not filepath.startswith('uploads/'): return False
     if cfdgfile:

@@ -19,7 +19,7 @@ class Comment:
                 self.comment = data['comment'].decode('utf-8')
 
             if 'whenposted' in data:
-                if type(data['whenposted']) is not datetime.datetime:
+                if not isinstance(data['whenposted'], datetime.datetime):
                     flask.abort(400,'Comment date must be a datetime.')
                 self.whenposted = data['whenposted']
 
@@ -69,7 +69,7 @@ class Comment:
             flask.abort(400,'Cannot instantiate a comment.')
 
 def CommentsByDesign(designid):
-    if type(designid) is not int or designid < 1:
+    if not isinstance(designid, int) or designid < 1:
         flask.abort(400, 'Bad request')
 
     db = gal_utils.get_db()

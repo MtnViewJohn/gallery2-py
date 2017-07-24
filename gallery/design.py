@@ -98,7 +98,7 @@ class Design:
                 data['numvotes'] = num
 
             if 'whenuploaded' in data:
-                if type(data['whenuploaded']) is not datetime.datetime:
+                if not isinstance(data['whenuploaded'], datetime.datetime):
                     flask.abort(400,'Upload date must be a datetime.')
                 self.whenuploaded = data['whenuploaded']
 
@@ -107,7 +107,7 @@ class Design:
                     flask.abort(400,'Notes cannot be longer than 1000 bytes.')
                 self.notes = data['notes'].decode('utf-8')
 
-        except ZeroDivisionError:
+        except:
             flask.abort(400,'Cannot instantiate a design.')
 
     def __init__(self, **data):
@@ -230,7 +230,7 @@ class Design:
 
             if not hasattr(self, 'whenuploaded'):
                 self.whenuploaded = datetime.now()
-        except ZeroDivisionError:
+        except:
             flask.abort(400,'Cannot normalize a design.')
 
     def archive():
@@ -240,7 +240,7 @@ class Design:
             if cursor.rowcount != 1: return False
 
             data = cursor.fetchone()
-            if type(data[0]) is not unicode: return False
+            if not isinstance(data[0], unicode): return False
             if data[0] == u'Y': return True
 
             cursor.execute('UPDATE gal_designs SET S3 = "Y" WHERE designid=%s', (self.designid,))
@@ -249,7 +249,7 @@ class Design:
 
 
 def DesignbyID(design_id):
-    if type(design_id) is not int or design_id < 0:
+    if not isinstance(design_id, int) or design_id < 0:
         flask.abort(400, 'Bad request')
 
     db = gal_utils.get_db()
@@ -301,7 +301,7 @@ def complete(cursor):
 
 def DesignByDesigner(name, start, num):
     if not gal_utils.legalOwner(name) or \
-        type(start) is not int or type(num) is not int or start < 0 or num < 1:
+        not isinstance(start, int) or not isinstance(num, int) or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     gal_utils.db = get_db()
@@ -311,7 +311,7 @@ def DesignByDesigner(name, start, num):
         return complete(cursor)
 
 def DesignByTitle(start, num):
-    if type(start) is not int or type(num) is not int or start < 0 or num < 1:
+    if not isinstance(start, int) or not isinstance(num, int) or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     gal_utils.db = get_db()
@@ -320,7 +320,7 @@ def DesignByTitle(start, num):
         return complete(cursor)
 
 def CountByTitle(title):
-    if type(title) is not unicode or len(title) < 3 or len(title) > 100:
+    if not isinstance(title, unicode) or len(title) < 3 or len(title) > 100:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
@@ -333,8 +333,8 @@ def CountByTitle(title):
         return datum[0]
 
 def DesignByRandom(seed, start, num):
-    if type(seed) is not int or type(start) is not int or \
-            type(num) is not int or start < 0 or num < 1:
+    if not isinstance(seed, int) or not isinstance(start, int) or \
+            not isinstance(num, int) or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
@@ -343,8 +343,8 @@ def DesignByRandom(seed, start, num):
         return complete(cursor)
 
 def DesignByDate(oldest, start, num):
-    if type(oldest) is not bool or type(start) is not int or type(num) is not int or \
-            start < 0 or num < 1:
+    if not isinstance(oldest, bool) or not isinstance(start, int) or \
+            not isinstance(num, int) or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
@@ -355,8 +355,8 @@ def DesignByDate(oldest, start, num):
         return complete(cursor)
 
 def DesignFavorites(name, start, num):
-    if not gal_utils.legalOwner(name) or type(start) is not int or \
-            type(num) is not int or start < 0 or num < 1:
+    if not gal_utils.legalOwner(name) or not isinstance(start, int) or \
+            not isinstance(num, int) or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
