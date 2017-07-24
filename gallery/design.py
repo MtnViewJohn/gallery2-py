@@ -334,7 +334,7 @@ def CountByTitle(title):
 
 def DesignByRandom(seed, start, num):
     if type(seed) is not int or type(start) is not int or \
-        type(num) is not int or start < 0 or num < 1:
+            type(num) is not int or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
@@ -344,7 +344,7 @@ def DesignByRandom(seed, start, num):
 
 def DesignByDate(oldest, start, num):
     if type(oldest) is not bool or type(start) is not int or type(num) is not int or \
-        start < 0 or num < 1:
+            start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
@@ -356,7 +356,7 @@ def DesignByDate(oldest, start, num):
 
 def DesignFavorites(name, start, num):
     if not gal_utils.legalOwner(name) or type(start) is not int or \
-        type(num) is not int or start < 0 or num < 1:
+            type(num) is not int or start < 0 or num < 1:
         flask.abort(400,'Bad request.')
 
     db = gal_utils.get_db()
