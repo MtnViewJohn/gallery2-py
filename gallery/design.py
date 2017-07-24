@@ -249,6 +249,9 @@ class Design:
 
 
 def DesignbyID(design_id):
+    if type(design_id) is not int or design_id < 0:
+        flask.abort(400, 'Bad request')
+
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         if design_id > 0:           # get actual design
