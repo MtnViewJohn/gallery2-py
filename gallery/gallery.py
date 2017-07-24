@@ -3,6 +3,7 @@ import mysql.connector
 import flask
 from contextlib import closing
 import design
+import comment
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -61,4 +62,10 @@ def get_random(seed, start, num):
         flask.abort(400,'Bad design count')
 
     return complete(design.DesignByRandom(seed, start, num))
+
+@app.route('/comments/<int:design_id>')
+def get_comments(design_id):
+    comments = comment.CommentsByDesign(design_id)
+    jcomments = map(comment.Comment.serialize, comments)
+    return flask.json.jsonify({'comments': jcomments})
 
