@@ -13,7 +13,7 @@ def legalOwner(owner):
     if not isinstance(owner, unicode): return False
     if owner == '': return False
     try:
-        pos = next(i for i,x in enumerate(owner) if x in '#&;:`|*?~<>^()[]{}$\\@%,/\'"- \t\f\r\n')
+        pos = next(i for i,x in enumerate(owner) if x in '#&;:`|*?~<>^()[]{}$\\@%,/\'"-\t\f\r\n')
         return False
     except:
         return True
