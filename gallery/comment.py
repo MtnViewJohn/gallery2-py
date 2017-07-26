@@ -1,6 +1,7 @@
 import flask
 import datetime
 from contextlib import closing
+from flask_login import current_user
 import gal_utils
 
 class Comment:
@@ -60,9 +61,11 @@ class Comment:
                 self.whenposted = datetime.now()
 
             if not hasattr(self, 'screenname'):
-                flask.abort(400,'A comment must have an owner.')
-                # TODO: get owner from session if logged in
-            elif not gal_utils.legalOwner(self.screenname):
+                u = current_user
+                if not u.is_authenticated:
+                    flask.abort(400,'A comment must have an owner.')
+                self.screenname = u.id
+            if not gal_utils.legalOwner(self.screenname):
                 flask.abort(400,'Bad owner.')
 
         except:

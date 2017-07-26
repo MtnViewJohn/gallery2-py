@@ -1,6 +1,7 @@
 import flask
 import datetime
 from contextlib import closing
+from flask_login import current_user
 import gal_utils
 
 class Design:
@@ -148,9 +149,11 @@ class Design:
                 flask.abort(400,'Bad design id.')
 
             if not hasattr(self, 'owner'):
-                flask.abort(400,'A design must have an owner.')
-                # TODO: get owner from session if logged in
-            elif not gal_utils.legalOwner(self.owner):
+                u = current_user
+                if not u.is_authenticated:
+                    flask.abort(400,'A design must have an owner.')
+                self.owner = u.id
+            if not gal_utils.legalOwner(self.owner):
                 flask.abort(400,'Bad owner.')
 
             if not hasattr(self, 'title'):
