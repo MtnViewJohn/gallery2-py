@@ -1,9 +1,10 @@
-import os
 import mysql.connector
 import flask
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from contextlib import closing
 import design
 import comment
+import user
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -12,6 +13,13 @@ app.config.from_json('config.json')
 def close_db(error):
     if hasattr(flask.g, 'mysql_db'):
         flask.g.mysql_db.close()
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return user.get(user_id)
 
 @app.route('/')
 def hello():
@@ -82,4 +90,32 @@ def get_comments(design_id):
     comments = comment.CommentsByDesign(design_id)
     jcomments = map(comment.Comment.serialize, comments)
     return flask.json.jsonify({'comments': jcomments})
+
+@app.route('/login/<username>/<password>/<int:rememberme>')
+def gal_login(username, password, rememberme):
+    newuser = user.canLogin(username, password)
+    if newuser is not None:
+        login_user(newuser, remember=(rememberme != 0))
+        return flask.json.jsonify({'login_success': True, 'userinfo': dict(newuser)})
+
+    return flask.json.jsonify({'login_success': False})
+
+@app.route('/logout')
+@login_required
+def gal_logout():
+    logout_user()
+    return flask.json.jsonify({'logout_success': True})
+
+@app.route('/userinfo/<username>')
+def gal_currentuser(username):
+    if username == '~':
+        u = current_user
+        if not u.is_authenticated:
+            return flask.json.jsonify({'userinfo': {}})
+    else:
+        u = user.get(username)
+
+    return flask.json.jsonify({'userinfo': dict(u)})
+
+
 
