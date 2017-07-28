@@ -95,6 +95,9 @@ def get_comments(design_id):
 def gal_login(username, password, rememberme):
     newuser = user.canLogin(username, password)
     if newuser is not None:
+        newuser.lastlogin = datetime.datetime.now()
+        newuser.numlogins += 1
+        newuser.save()
         login_user(newuser, remember=(rememberme != 0))
         return flask.json.jsonify({'login_success': True, 'userinfo': dict(newuser)})
 
@@ -115,7 +118,10 @@ def gal_currentuser(username):
     else:
         u = user.get(username)
 
-    return flask.json.jsonify({'userinfo': dict(u)})
+    if u is None:
+        return flask.json.jsonify({'error': 'No user'})
+    else:
+        return flask.json.jsonify({'userinfo': dict(u)})
 
 
 
