@@ -99,9 +99,9 @@ def gal_login(username, password, rememberme):
         newuser.numlogins += 1
         newuser.save()
         login_user(newuser, remember=(rememberme != 0))
-        return flask.json.jsonify({'login_success': True, 'userinfo': dict(newuser)})
+        return flask.json.jsonify({'userinfo': dict(newuser)})
 
-    return flask.json.jsonify({'login_success': False})
+    return flask.json.jsonify({'userinfo': {}})
 
 @app.route('/logout')
 @login_required
@@ -122,6 +122,19 @@ def gal_currentuser(username):
         return flask.json.jsonify({'error': 'No user'})
     else:
         return flask.json.jsonify({'userinfo': dict(u)})
+
+@app.route('/notify/<int:notify>', methods=['POST'])
+@login_required
+def gal_set_notify(notify):
+    u = current_user
+    if not u.is_authenticated:
+        return flask.json.jsonify({'userinfo': {}})
+
+    u.notify = notify != 0
+    u.save()
+    return flask.json.jsonify({'userinfo': dict(u)})
+
+
 
 
 
