@@ -109,9 +109,10 @@ def gal_logout():
     logout_user()
     return flask.json.jsonify({'logout_success': True})
 
+@app.route('/userinfo', defaults={'username': ''})
 @app.route('/userinfo/<username>')
-def gal_currentuser(username):
-    if username == '~':
+def gal_userinfo(username):
+    if username == '':
         u = current_user
         if not u.is_authenticated:
             return flask.json.jsonify({'userinfo': {}})
@@ -119,7 +120,7 @@ def gal_currentuser(username):
         u = user.get(username)
 
     if u is None:
-        return flask.json.jsonify({'error': 'No user'})
+        return flask.json.jsonify({'userinfo': {}})
     else:
         return flask.json.jsonify({'userinfo': dict(u)})
 
