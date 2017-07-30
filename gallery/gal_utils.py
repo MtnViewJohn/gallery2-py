@@ -1,12 +1,16 @@
 import flask
 import urlparse
 import mysql.connector
+import mysql.connector.pooling
+from mysql.connector.constants import ClientFlag
 
 def get_db():
     db = getattr(flask.g, 'mysql_db', None)
     if db is None:
         mysql_cfg = flask.current_app.config['MYSQL']
-        db = flask.g.mysql_db =  mysql.connector.connect(**mysql_cfg)
+        cnxpool = mysql.connector.pooling.MySQLConnectionPool(
+            client_flags=[ClientFlag.FOUND_ROWS], **mysql_cfg)
+        db = flask.g.mysql_db =  cnxpool.get_connection()
     return db
 
 def legalOwner(owner):

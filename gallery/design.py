@@ -2,6 +2,7 @@ import flask
 import datetime
 from contextlib import closing
 from flask_login import current_user
+from werkzeug.exceptions import HTTPException
 import gal_utils
 
 class Design:
@@ -99,15 +100,21 @@ class Design:
                 data['numvotes'] = num
 
             if 'whenuploaded' in data:
-                if not isinstance(data['whenuploaded'], datetime.datetime):
+                if isinstance(data['whenuploaded'], datetime.datetime):
+                    self.whenuploaded = data['whenuploaded']
+                elif isinstance(data['whenuploaded'], unicode):
+                    self.whenuploaded = datetime.datetime.strptime(
+                        data['whenuploaded'], "%Y-%m-%dT%H:%M:%S")
+                else:
                     flask.abort(400,'Upload date must be a datetime.')
-                self.whenuploaded = data['whenuploaded']
 
             if 'notes' in data:
                 if len(data['notes']) > 1000:
                     flask.abort(400,'Notes cannot be longer than 1000 bytes.')
                 self.notes = data['notes'].decode('utf-8')
 
+        except HTTPException:
+            raise
         except:
             flask.abort(400,'Cannot instantiate a design.')
 
@@ -134,7 +141,7 @@ class Design:
         yield 'ccURI', self.ccURI
         yield 'ccName', self.ccName
         yield 'ccImage', self.ccImage
-        yield 'whenuploaded', self.whenuploaded
+        yield 'whenuploaded', self.whenuploaded.isoformat()
         if hasattr(self, 'tags'):
             yield 'tags', self.tags
         if hasattr(self, 'fans'):
@@ -232,11 +239,14 @@ class Design:
                 # TODO: when there are sessions then try the user default license
 
             if not hasattr(self, 'whenuploaded'):
-                self.whenuploaded = datetime.now()
+                self.whenuploaded = datetime.datetime.now()
+
+        except HTTPException:
+            raise
         except:
             flask.abort(400,'Cannot normalize a design.')
 
-    def archive():
+    def archive(self):
         db = gal_utils.get_db()
         with closing(db.cursor(buffered=True)) as cursor:
             cursor.execute('SELECT S3 FROM gal_designs WHERE designid=%s', (self.designid,))
@@ -249,6 +259,37 @@ class Design:
             cursor.execute('UPDATE gal_designs SET S3 = "Y" WHERE designid=%s', (self.designid,))
             return cursor.rowcount == 1
 
+    def save(self):
+        db = gal_utils.get_db()
+        owner = current_user
+        with closing(db.cursor(buffered=True)) as cursor:
+            if self.designid == 0:
+                cursor.execute('INSERT INTO gal_designs (owner, title, '
+                    'variation, tiled, ccURI, ccName, ccImage, S3, '
+                    'imageversion, numvotes, whenuploaded, notes) '
+                    'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s)',
+                    (self.owner,self.title,self.variation,self.tiled,
+                     self.ccURI,self.ccName,self.ccImage,u'Y' if self.S3 else u'N',
+                     self.imageversion,self.numvotes,self.notes))
+                self.designid = cursor.lastrowid
+
+                if cursor.rowcount == 1:
+                    owner.numposts += 1
+            else:
+                cursor.execute('UPDATE gal_designs SET title=%s, variation=%s, '
+                    'tiled=%s, ccURI=%s, ccName=%s, ccImage=%s, S3=%s, '
+                    'notes=%s WHERE designid=%s', 
+                    (self.title,self.variation,self.tiled,self.ccURI,
+                     self.ccName,self.ccImage,u'Y' if self.S3 else u'N',
+                     self.notes,self.designid))
+                print cursor.statement
+                print cursor.rowcount
+
+            if cursor.rowcount == 1:
+                owner.ccURI = self.ccURI
+                owner.save()
+                return self.designid
+        return None
 
 
 def DesignbyID(design_id):

@@ -83,30 +83,31 @@ class User(UserMixin):
         yield 'username', self.id
         yield 'admin', self.is_admin
         yield 'email', self.email
-        yield 'lastlogin', self.lastlogin
-        yield 'joinedon', self.joinedon
+        yield 'lastlogin', self.lastlogin.isoformat()
+        yield 'joinedon', self.joinedon.isoformat()
         yield 'numposts', self.numposts
         yield 'numlogins', self.numlogins
         yield 'notify', self.notify
         yield 'ccURI', self.ccURI
 
-    def save(self):
+    def save(self, newLogin=False):
         db = gal_utils.get_db()
         with closing(db.cursor(buffered=True)) as cursor:
             if self.inGalUsers:
-                cursor.execute('UPDATE gal_users SET lastlogin=%s, joinedon=%s, '
+                lastlogin = 'lastlogin=NOW(), ' if newLogin else ''
+                cursor.execute('UPDATE gal_users SET ' + lastlogin +
                                'numposts=%s, numlogins=%s, notify_of_comments=%s, '
                                'ccURI=%s WHERE screenname=%s',
-                               (self.lastlogin,self.joinedon,self.numposts,
-                                self.numlogins,self.notify,self.ccURI,self.id))
+                               (self.numposts,self.numlogins,
+                                self.notify,self.ccURI,self.id))
             else:
                 cursor.execute('INSERT INTO gal_users (screenname, email, '
                                'lastlogin, joinedon, numposts, numlogins, '
                                'notify_of_comments, ccURI) VALUES'
-                               '(%s,%s,%s,%s,%s,%s,%s,%s)',
-                               (self.id,self.email,self.lastlogin,self.joinedon,
-                                self.numposts,self.numlogins,
-                                1 if self.notify else 0,self.ccURI))
+                               '(%s,%s,NOW(),NOW(),%s,%s,%s,%s)',
+                               (self.id,self.email,self.numposts,
+                                self.numlogins,1 if self.notify else 0,
+                                self.ccURI))
                 if cursor.rowcount == 1:
                     self.inGalUsers = True
 

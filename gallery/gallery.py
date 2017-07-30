@@ -5,6 +5,8 @@ from contextlib import closing
 import design
 import comment
 import user
+import upload
+import datetime
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -34,6 +36,54 @@ def get_design(design_id):
         return flask.json.jsonify(error = "Could not find design")
     else:
         return flask.json.jsonify({ 'design': dict(mydesign)})
+
+@app.route('/postdesign', methods=['POST'])
+@login_required
+def put_design():
+    jdesign = flask.request.get_json()
+
+    if 'designid' in jdesign:
+        design_id = jdesign['designid']
+        if not isinstance(design_id, int) or design_id <= 0:
+            flask.abort(400,'Bad design id')
+        d = design.DesignbyID(design_id)    # Get design from database
+        d.init(**jdesign)                   # Merge in changes from POST
+    else:
+        d = design.Design(**jdesign)        # Create new design from POST
+
+    d.normalize()
+    id = d.save()
+    if id is not None:
+        return flask.json.jsonify({
+            'getdesign': flask.url_for('get_design', design_id=id),
+            'putimage': flask.url_for('upload_image', design_id=id),
+            'putcfdg': flask.url_for('upload_cfdg', design_id=id, name='name.cfdg')
+        })
+    else:
+        if 'designid' in jdesign:
+            return flask.json.jsonify({'error': 'Could not update design'})
+        else:
+            return flask.json.jsonify({'error': 'Could not insert design'})
+
+@app.route('/image/<int:design_id>', methods=['PUT'])
+@login_required
+def upload_image(design_id):
+    pass
+
+@app.route('/cfdg/<int:design_id>/<name>', methods=['PUT'])
+@login_required
+def upload_cfdg(design_id, name):
+    if design_id <= 0:
+        flask.abort(400,'Bad design id')
+    cfdg = flask.request.data
+    if cfdg is None or len(cfdg) == 0:
+        flask.abort(400,'Bad cfdg')
+    upload.uploadcfdg(design_id, name, cfdg)
+    return flask.json.jsonify({'success': True})
+
+@app.route('/prettycfdg/<int:design_id>')
+def pretty_cfdg(design_id):
+    pass
 
 def complete(designs):
     jdesigns = map(design.Design.serialize, designs)
@@ -97,7 +147,7 @@ def gal_login(username, password, rememberme):
     if newuser is not None:
         newuser.lastlogin = datetime.datetime.now()
         newuser.numlogins += 1
-        newuser.save()
+        newuser.save(True)
         login_user(newuser, remember=(rememberme != 0))
         return flask.json.jsonify({'userinfo': dict(newuser)})
 
