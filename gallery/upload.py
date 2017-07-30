@@ -58,11 +58,13 @@ def uploadcfdg(designid, name, contents):
                 os.unlink(oldcfdg)
             except OSerror:
                 pass
-        with closing(db.cursor()) as cursor:
-            cursor.execute('UPDATE gal_designs SET filelocation=%s WHERE '
-                           'designid=%s', (cfdgpath,designid))
-            if cursor.rowcount != 1:
-                flask.abort(500,'Cannot write database')
+
+    with closing(db.cursor()) as cursor:
+        cursor.execute('UPDATE gal_designs SET filelocation=%s, '
+                       'whenuploaded=NOW() WHERE designid=%s', 
+                       (cfdgpath,designid))
+        if cursor.rowcount != 1:
+            flask.abort(500,'Cannot write database')
 
 
 

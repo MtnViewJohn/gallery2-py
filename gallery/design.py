@@ -67,12 +67,17 @@ class Design:
                 self.filelocation = data['filelocation']
 
             if 'S3' in data:
-                if data['S3'] == 'Y':
-                    self.S3 = True
-                elif data['S3'] == 'N':
-                    self.S3 = False
+                if isinstance(data['S3'], bool):
+                    self.S3 = data['S3']
+                elif isinstance(data['S3'], unicode):
+                    if data['S3'] == u'Y':
+                        self.S3 = True
+                    elif data['S3'] == u'N':
+                        self.S3 = False
+                    else:
+                        flask.abort(400,'Illegal enum value for S3 flag.')
                 else:
-                    flask.abort(400,'Illegal enum value for S3 flag.')
+                    flask.abort(400,'S3 flag must be bool or enum Y/N.')
 
             if 'imageversion' in data:
                 v = int(data['imageversion'])
@@ -130,7 +135,7 @@ class Design:
         yield 'title', self.title
         yield 'variation', self.variation
         yield 'tiled', self.tiled
-        yield 'S3', u'Y' if self.S3 else u'N'
+        yield 'S3', self.S3
         yield 'filelocation', self.filelocation
         yield 'imagelocation', self.imagelocation
         yield 'thumblocation', self.thumblocation
@@ -180,7 +185,7 @@ class Design:
 
             if not hasattr(self, 'S3'):
                 self.S3 = False
-            elif type(self.S3) is not bool:
+            elif not isinstance(self.S3, bool):
                 flask.abort(400,'Bad S3 state.')
 
             if not hasattr(self, 'filelocation'):
@@ -236,7 +241,6 @@ class Design:
                 self.ccURI = ''
                 self.ccName = ''
                 self.ccImage = 'No license chosen'
-                # TODO: when there are sessions then try the user default license
 
             if hasattr(self, 'uploaddate'):
                 if self.uploaddate < 1104566400:
