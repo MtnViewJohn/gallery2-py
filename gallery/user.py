@@ -1,5 +1,5 @@
 import flask
-import datetime
+import time
 from flask_login import UserMixin
 from contextlib import closing
 import gal_utils
@@ -43,12 +43,12 @@ def get(username):
         user.is_admin = data[1] == 1
         user.email = data[2].decode('utf-8')
 
-        cursor.execute('SELECT lastlogin, joinedon, numposts, numlogins, '
-                       'notify_of_comments, ccURI FROM gal_users '
-                       'WHERE screenname=%s', (username,))
+        cursor.execute('SELECT UNIX_TIMESTAMP(lastlogin), UNIX_TIMESTAMP(joinedon), '
+                       'numposts, numlogins, notify_of_comments, ccURI '
+                       'FROM gal_users WHERE screenname=%s', (username,))
         data = cursor.fetchone()
-        if data is None or len(data) < 6 or not isinstance(data[0], datetime.datetime) or \
-                not isinstance(data[1], datetime.datetime) or not isinstance(data[2], int) or \
+        if data is None or len(data) < 6 or not isinstance(data[0], int) or \
+                not isinstance(data[1], int) or not isinstance(data[2], int) or \
                 not isinstance(data[3], int) or not isinstance(data[4], int) or \
                 not isinstance(data[5], unicode):
             return user
@@ -71,8 +71,8 @@ class User(UserMixin):
         self.is_admin = False
         self.email = u''
         self.password_hash = u''
-        self.lastlogin = datetime.datetime.now()
-        self.joinedon = datetime.datetime.now()
+        self.lastlogin = int(time.time())
+        self.joinedon = int(time.time())
         self.numposts = 0
         self.numlogins = 0
         self.notify = False
@@ -83,8 +83,8 @@ class User(UserMixin):
         yield 'username', self.id
         yield 'admin', self.is_admin
         yield 'email', self.email
-        yield 'lastlogin', self.lastlogin.isoformat()
-        yield 'joinedon', self.joinedon.isoformat()
+        yield 'lastlogin', self.lastlogin
+        yield 'joinedon', self.joinedon
         yield 'numposts', self.numposts
         yield 'numlogins', self.numlogins
         yield 'notify', self.notify

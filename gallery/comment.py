@@ -1,11 +1,13 @@
 import flask
-import datetime
+import time
 from contextlib import closing
 from flask_login import current_user
+from werkzeug.exceptions import HTTPException
 import gal_utils
 
 class Comment:
-    Query_base = 'SELECT screenname, comment, whenposted, commentid FROM gal_comments '
+    Query_base = ('SELECT screenname, comment, UNIX_TIMESTAMP(whenposted) AS postdate, '
+                  'commentid FROM gal_comments ')
 
     def init(self, **data):
         try:
@@ -19,10 +21,14 @@ class Comment:
             if 'comment' in data:
                 self.comment = data['comment'].decode('utf-8')
 
-            if 'whenposted' in data:
-                if not isinstance(data['whenposted'], datetime.datetime):
-                    flask.abort(400,'Comment date must be a datetime.')
-                self.whenposted = data['whenposted']
+            if 'postdate' in data:
+                if not isinstance(data['postdate'], int):
+                    flask.abort(400,'Comment date must be a POSIX timestamp int.')
+                elif data['postdate'] < 1104566400:
+                    flask.abort(400,'Comment date before 2005')
+                elif hasattr(self, 'postdate') and self.postdate != data['postdate']:
+                    flask.abort(400,'Comment post date cannot be changed.')
+                self.postdate = data['postdate']
 
             if 'commentid' in data:
                 id = int(data['commentid'])
@@ -32,6 +38,8 @@ class Comment:
                     flask.abort(400,'Comment ID cannot be changed.')
                 self.commentid = id
 
+        except HTTPException:
+            raise
         except:
             flask.abort(400,'Cannot instantiate a comment.')
 
@@ -44,7 +52,7 @@ class Comment:
     def __iter__(self):
         yield 'screenname', self.screenname
         yield 'comment', self.comment
-        yield 'whenposted', self.whenposted
+        yield 'postdate', self.postdate
         yield 'commentid', self.commentid
 
     def normalize(self):
@@ -57,8 +65,11 @@ class Comment:
             if not hasattr(self, 'comment'):
                 flask.abort(400,'Empty comments are not allowed.')
 
-            if not hasattr(self, 'whenposted'):
-                self.whenposted = datetime.now()
+            if hasattr(self, 'postdate'):
+                if self.postdate < 1104566400:
+                    flask.abort(400,'Comment date before 2005')
+            else:
+                self.whenposted = int(time.time())
 
             if not hasattr(self, 'screenname'):
                 u = current_user
@@ -68,12 +79,14 @@ class Comment:
             if not gal_utils.legalOwner(self.screenname):
                 flask.abort(400,'Bad owner.')
 
+        except HTTPException:
+            raise
         except:
             flask.abort(400,'Cannot instantiate a comment.')
 
 def CommentsByDesign(designid):
     if not isinstance(designid, int) or designid < 1:
-        flask.abort(400, 'Bad request')
+        flask.abort(400, 'Bad design id')
 
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:

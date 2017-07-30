@@ -6,7 +6,7 @@ import design
 import comment
 import user
 import upload
-import datetime
+import time
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -145,7 +145,7 @@ def get_comments(design_id):
 def gal_login(username, password, rememberme):
     newuser = user.canLogin(username, password)
     if newuser is not None:
-        newuser.lastlogin = datetime.datetime.now()
+        newuser.lastlogin = int(time.time())
         newuser.numlogins += 1
         newuser.save(True)
         login_user(newuser, remember=(rememberme != 0))

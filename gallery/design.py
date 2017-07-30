@@ -1,20 +1,20 @@
 import flask
-import datetime
+import time
 from contextlib import closing
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 import gal_utils
 
 class Design:
-    S3_dir = "https://glyphic.s3.amazonaws.com/cfa/gallery/"
-    Query_base = ("SELECT designid, owner, title, variation, tiled, ccURI, ccName, "
-                      "ccImage, filelocation, S3, imageversion, imagelocation, "
-                      "thumblocation, sm_thumblocation, numvotes, "
-                      "whenuploaded, notes FROM gal_designs ")
-    Query_base_d = ("SELECT d.designid, d.owner, d.title, d.variation, d.tiled, d.ccURI, "
-                      "d.ccName, d.ccImage, d.filelocation, d.S3, d.imageversion, "
-                      "d.imagelocation, d.thumblocation, d.sm_thumblocation, d.numvotes, "
-                      "d.whenuploaded, d.notes FROM gal_designs AS d ")
+    S3_dir = 'https://glyphic.s3.amazonaws.com/cfa/gallery/'
+    Query_base = ('SELECT designid, owner, title, variation, tiled, ccURI, ccName, '
+                  'ccImage, filelocation, S3, imageversion, imagelocation, '
+                  'thumblocation, sm_thumblocation, numvotes, '
+                  'UNIX_TIMESTAMP(whenuploaded) AS uploaddate, notes FROM gal_designs ')
+    Query_base_d = ('SELECT d.designid, d.owner, d.title, d.variation, d.tiled, d.ccURI, '
+                    'd.ccName, d.ccImage, d.filelocation, d.S3, d.imageversion, '
+                    'd.imagelocation, d.thumblocation, d.sm_thumblocation, d.numvotes, '
+                    'UNIX_TIMESTAMP(d.whenuploaded) AS uploaddate, d.notes FROM gal_designs AS d ')
 
     def init(self, **data):
         try:
@@ -99,14 +99,14 @@ class Design:
                 if num < 0: flask.abort(400,'Illegal vote count.')
                 data['numvotes'] = num
 
-            if 'whenuploaded' in data:
-                if isinstance(data['whenuploaded'], datetime.datetime):
-                    self.whenuploaded = data['whenuploaded']
-                elif isinstance(data['whenuploaded'], unicode):
-                    self.whenuploaded = datetime.datetime.strptime(
-                        data['whenuploaded'], "%Y-%m-%dT%H:%M:%S")
+            if 'uploaddate' in data:
+                if isinstance(data['uploaddate'], int):
+                    if data['uploaddate'] < 1104566400:
+                        flask.abort(400,'Upload date before 2005')
+                    else:
+                        self.uploaddate = data['uploaddate']
                 else:
-                    flask.abort(400,'Upload date must be a datetime.')
+                    flask.abort(400,'Upload date must be a POSIX timestamp int.')
 
             if 'notes' in data:
                 if len(data['notes']) > 1000:
@@ -141,7 +141,7 @@ class Design:
         yield 'ccURI', self.ccURI
         yield 'ccName', self.ccName
         yield 'ccImage', self.ccImage
-        yield 'whenuploaded', self.whenuploaded.isoformat()
+        yield 'uploaddate', self.uploaddate
         if hasattr(self, 'tags'):
             yield 'tags', self.tags
         if hasattr(self, 'fans'):
@@ -238,8 +238,11 @@ class Design:
                 self.ccImage = 'No license chosen'
                 # TODO: when there are sessions then try the user default license
 
-            if not hasattr(self, 'whenuploaded'):
-                self.whenuploaded = datetime.datetime.now()
+            if hasattr(self, 'uploaddate'):
+                if self.uploaddate < 1104566400:
+                    flask.abort(400,'Upload date before 2005')
+            else:
+                self.uploaddate = int(time.time())
 
         except HTTPException:
             raise
