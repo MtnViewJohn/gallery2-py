@@ -253,6 +253,13 @@ class Design:
         except:
             flask.abort(400,'Cannot normalize a design.')
 
+    def ready4display(self):
+        return (gal_utils.legalFilePath(self.filelocation, True) and
+                gal_utils.legalFilePath(self.imagelocation, False) and
+                gal_utils.legalFilePath(self.thumblocation, False) and
+                gal_utils.legalFilePath(self.sm_thumblocation, False));
+
+
     def archive(self):
         db = gal_utils.get_db()
         with closing(db.cursor(buffered=True)) as cursor:
@@ -317,6 +324,9 @@ def DesignbyID(design_id):
 
         design = Design(**cursor.fetchone())
 
+        if not design.ready4display():
+            return None
+
         cursor.execute('SELECT n.name FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
             'AND t.tag=n.id', (design_id,))
         if cursor.rowcount > 0:
@@ -337,17 +347,21 @@ def DesignbyID(design_id):
         return design
 
 def complete(cursor):
-    if cursor.rowcount == 0: return []
+    if cursor.rowcount == 0: return (0, [])
 
     rows = cursor.fetchall()
 
     ret = []
     for row in rows:
-        design = Design(**row)
-        design.normalize()
-        ret.append(design)
+        try:
+            design = Design(**row)
+            design.normalize()
+            if design.ready4display():
+                ret.append(design)
+        except:
+            pass
 
-    return ret
+    return (cursor.rowcount, ret)
 
 
 def DesignByDesigner(name, start, num):

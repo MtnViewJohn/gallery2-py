@@ -86,8 +86,8 @@ def pretty_cfdg(design_id):
     pass
 
 def complete(designs):
-    jdesigns = map(design.Design.serialize, designs)
-    return flask.json.jsonify({'designs': jdesigns})
+    jdesigns = map(design.Design.serialize, designs[1])
+    return flask.json.jsonify({'count': designs[0], 'designs': jdesigns})
 
 @app.route('/by/<name>/<int:start>/<int:num>')
 def get_designer(name, start, num):
