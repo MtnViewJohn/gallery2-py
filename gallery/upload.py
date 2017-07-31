@@ -38,18 +38,21 @@ def makeFilePath(basedir, owner):
 
 
 def uploadcfdg(designid, name, contents):
-    loggedIn = current_user.id
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
-        cursor.execute('SELECT filelocation FROM gal_designs WHERE '
-                       'designid=%s AND owner=%s', (designid, loggedIn))
+        cursor.execute('SELECT filelocation, owner FROM gal_designs WHERE '
+                       'designid=%s', (designid,))
         data = cursor.fetchone()
-        if data is None or not isinstance(data[0], unicode):
-            flask.abort(400,'Ownership issue.')
+        if (data is None or not isinstance(data[0], unicode) 
+                         or not isinstance(data[1], unicode)):
+            flask.abort(404,'Design not found.')
         oldcfdg = data[0]
+        owner = data[1]
 
+    if not gal_utils.validateOwner(owner):
+        flask.abort(403,'Unauthorized.')
 
-    cfdgdir = makeFilePath('uploads', loggedIn) + os.sep + str(designid)
+    cfdgdir = makeFilePath('uploads', owner) + os.sep + str(designid)
     cfdgpath = cfdgdir + os.sep + name
     if not gal_utils.legalFilePath(cfdgpath, True):
         flask.abort(400,'Bad cfdg file name.')
@@ -89,28 +92,33 @@ def uploadpng(design_id, jpeg, png):
     except IOError:
         flask.abort(400,'Cannot read PNG data')
 
-    loggedIn = current_user.id
     db = gal_utils.get_db()
     files = []
     try:
         with closing(db.cursor(buffered=True)) as cursor:
-            cursor.execute('SELECT imagelocation, thumblocation, sm_thumblocation '
-                           'FROM gal_designs WHERE designid=%s AND owner=%s', 
-                           (design_id, loggedIn))
+            cursor.execute('SELECT imagelocation, thumblocation, sm_thumblocation, '
+                           'owner FROM gal_designs WHERE designid=%s', 
+                           (design_id,))
             data = cursor.fetchone()
             if (data is None or not isinstance(data[0], unicode)
                              or not isinstance(data[1], unicode)
-                             or not isinstance(data[2], unicode)):
-                flask.abort(400,'Ownership issue.')
-            
-            for file in data:
+                             or not isinstance(data[2], unicode)
+                             or not isinstance(data[3], unicode)):
+                flask.abort(404,'Design not found.')
+
+            owner = data[3]
+            oldfiles = data[0:2]
+            if not gal_utils.validateOwner(owner):
+                flask.abort(403,'Unauthorized.')
+
+            for file in oldfiles:
                 if os.path.isfile(file):
                     try:
                         os.unlink(file)
                     except OSError:
                         pass
 
-            path = makeFilePath('uploads', loggedIn)
+            path = makeFilePath('uploads', owner)
             filename = str(design_id) + ('.jpg' if jpeg else '.png')
             imagepath = path + os.sep + 'full_' + filename
             thumbpath = path + os.sep + 'thumb_' + filename

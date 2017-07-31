@@ -1,4 +1,5 @@
 import flask
+from flask_login import current_user
 import urlparse
 import mysql.connector
 import mysql.connector.pooling
@@ -21,6 +22,12 @@ def legalOwner(owner):
         return False
     except:
         return True
+
+def validateOwner(owner):
+    if not current_user.is_authenticated:
+        return False
+    return  current_user.is_admin or current_user.id == owner
+    
 
 def legalVariation(var):
     if not isinstance(var, unicode): return False

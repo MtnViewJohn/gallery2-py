@@ -7,6 +7,7 @@ import comment
 import user
 import upload
 import time
+import gal_utils
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -49,6 +50,12 @@ def put_design():
         if not isinstance(design_id, int) or design_id <= 0:
             flask.abort(400,'Bad design id')
         d = design.DesignbyID(design_id)    # Get design from database
+
+        if d is None:
+            flask.abort(404,'Design not found.')
+        if not gal_utils.validateOwner(d.owner):
+            flask.abort(403,'Unauthorized.')
+        
         d.init(**jdesign)                   # Merge in changes from POST
     else:
         d = design.Design(**jdesign)        # Create new design from POST
