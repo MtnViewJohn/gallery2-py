@@ -82,7 +82,7 @@ class Design:
             if 'imageversion' in data:
                 v = int(data['imageversion'])
                 if v < 0: flask.abort(400,'Illegal image version.')
-                data['imageversion'] = v
+                self.imageversion = v
 
             if 'imagelocation' in data:
                 if not gal_utils.legalFilePath(data['imagelocation'], False):
@@ -102,7 +102,7 @@ class Design:
             if 'numvotes' in data:
                 num = int(data['numvotes'])
                 if num < 0: flask.abort(400,'Illegal vote count.')
-                data['numvotes'] = num
+                self.numvotes = num
 
             if 'uploaddate' in data:
                 if isinstance(data['uploaddate'], int):
