@@ -162,7 +162,7 @@ class Design:
 
             if not hasattr(self, 'owner'):
                 u = current_user
-                if not u.is_authenticated:
+                if not u.is_authenticated or self.designid > 0:
                     flask.abort(400,'A design must have an owner.')
                 self.owner = u.id
             if not gal_utils.legalOwner(self.owner):
@@ -296,8 +296,6 @@ class Design:
                     (self.title,self.variation,self.tiled,self.ccURI,
                      self.ccName,self.ccImage,u'Y' if self.S3 else u'N',
                      self.notes,self.designid))
-                print cursor.statement
-                print cursor.rowcount
 
             if cursor.rowcount == 1:
                 owner.ccURI = self.ccURI

@@ -42,6 +42,8 @@ def get_design(design_id):
 def put_design():
     jdesign = flask.request.get_json()
 
+    upload.trim(jdesign)
+
     if 'designid' in jdesign:
         design_id = jdesign['designid']
         if not isinstance(design_id, int) or design_id <= 0:
@@ -56,7 +58,7 @@ def put_design():
     if id is not None:
         return flask.json.jsonify({
             'getdesign': flask.url_for('get_design', design_id=id),
-            'putimage': flask.url_for('upload_image', design_id=id),
+            'putimage': flask.url_for('upload_image', design_id=id, jpeg=0),
             'putcfdg': flask.url_for('upload_cfdg', design_id=id, name='name.cfdg')
         })
     else:
@@ -65,10 +67,16 @@ def put_design():
         else:
             return flask.json.jsonify({'error': 'Could not insert design'})
 
-@app.route('/image/<int:design_id>', methods=['PUT'])
+@app.route('/image/<int:design_id>/<int:jpeg>', methods=['PUT'])
 @login_required
-def upload_image(design_id):
-    pass
+def upload_image(design_id, jpeg):
+    if design_id <= 0:
+        flask.abort(400,'Bad design id')
+    png = flask.request.data
+    if png is None or len(png) == 0:
+        flask.abort(400,'Bad PNG')
+    upload.uploadpng(design_id, jpeg != 0, png)
+    return flask.json.jsonify({'success': True})
 
 @app.route('/cfdg/<int:design_id>/<name>', methods=['PUT'])
 @login_required
