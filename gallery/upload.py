@@ -8,6 +8,8 @@ from PIL import Image
 import gal_utils
 from hashlib import md5
 from werkzeug.exceptions import HTTPException
+from gal_utils import text
+#import traceback
 
 def trim(jdata):
     jdata.pop('S3', None)
@@ -22,52 +24,52 @@ def trim(jdata):
 
 
 def makeFilePath(basedir, owner):
-    usermd5 = md5(owner).hexdigest()
+    usermd5 = md5(owner.encode()).hexdigest()
     subdir1 = usermd5[0:2]
     subdir2 = usermd5[2:4]
 
-    path = basedir + os.sep + subdir1 + os.sep + subdir2 + os.sep + usermd5
+    path = os.path.join(basedir, subdir1, subdir2, usermd5)
     if os.path.isdir(path):
         return path
 
     try:
-        os.makedirs(path, 0775)
+        os.makedirs(path, 0o775)
         return path
     except OSError:
-        flask.abort(500,'Cannot create directory')
+        flask.abort(500,u'Cannot create directory: ' + path)
 
 
 def uploadcfdg(designid, name, contents):
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
-        cursor.execute('SELECT filelocation, owner FROM gal_designs WHERE '
-                       'designid=%s', (designid,))
+        cursor.execute(u'SELECT filelocation, owner FROM gal_designs WHERE '
+                       u'designid=%s', (designid,))
         data = cursor.fetchone()
-        if (data is None or not isinstance(data[0], unicode) 
-                         or not isinstance(data[1], unicode)):
-            flask.abort(404,'Design not found.')
+        if (data is None or not isinstance(data[0], text) 
+                         or not isinstance(data[1], text)):
+            flask.abort(404,u'Design not found.')
         oldcfdg = data[0]
         owner = data[1]
 
     if not gal_utils.validateOwner(owner):
-        flask.abort(403,'Unauthorized.')
+        flask.abort(403,u'Unauthorized.')
 
-    cfdgdir = makeFilePath('uploads', owner) + os.sep + str(designid)
-    cfdgpath = cfdgdir + os.sep + name
+    cfdgdir = os.path.join(makeFilePath(u'uploads', owner), str(designid))
+    cfdgpath = os.path.join(cfdgdir, name)
     if not gal_utils.legalFilePath(cfdgpath, True):
-        flask.abort(400,'Bad cfdg file name.')
+        flask.abort(400,u'Bad cfdg file name.')
 
     if not os.path.isdir(cfdgdir):
         try:
-            os.mkdir(cfdgdir, 0775)
+            os.mkdir(cfdgdir, 0o775)
         except OSError:
-            flask.abort(500,'Cannot create directory')
+            flask.abort(500,u'Cannot create directory')
 
     try:
-        fd = os.open(cfdgpath, os.O_WRONLY + os.O_CREAT + os.O_TRUNC, 0775)
+        fd = os.open(cfdgpath, os.O_WRONLY + os.O_CREAT + os.O_TRUNC, 0o775)
         os.write(fd, contents)
     except OSError:
-        flask.abort(500,'Cannot write cfdg')
+        flask.abort(500,u'Cannot write cfdg')
     finally:
         os.close(fd)
 
@@ -79,37 +81,37 @@ def uploadcfdg(designid, name, contents):
                 pass
 
     with closing(db.cursor()) as cursor:
-        cursor.execute('UPDATE gal_designs SET filelocation=%s, '
-                       'whenuploaded=NOW() WHERE designid=%s', 
+        cursor.execute(u'UPDATE gal_designs SET filelocation=%s, '
+                       u'whenuploaded=NOW() WHERE designid=%s', 
                        (cfdgpath,designid))
         if cursor.rowcount != 1:
-            flask.abort(500,'Cannot write database')
+            flask.abort(500,u'Cannot write database')
 
 
 def uploadpng(design_id, jpeg, png):
     try:
         pngimage = Image.open(io.BytesIO(png))
     except IOError:
-        flask.abort(400,'Cannot read PNG data')
+        flask.abort(400,u'Cannot read PNG data')
 
     db = gal_utils.get_db()
     files = []
     try:
         with closing(db.cursor(buffered=True)) as cursor:
-            cursor.execute('SELECT imagelocation, thumblocation, sm_thumblocation, '
-                           'owner FROM gal_designs WHERE designid=%s', 
+            cursor.execute(u'SELECT imagelocation, thumblocation, sm_thumblocation, '
+                           u'owner FROM gal_designs WHERE designid=%s', 
                            (design_id,))
             data = cursor.fetchone()
-            if (data is None or not isinstance(data[0], unicode)
-                             or not isinstance(data[1], unicode)
-                             or not isinstance(data[2], unicode)
-                             or not isinstance(data[3], unicode)):
-                flask.abort(404,'Design not found.')
+            if (data is None or not isinstance(data[0], text)
+                             or not isinstance(data[1], text)
+                             or not isinstance(data[2], text)
+                             or not isinstance(data[3], text)):
+                flask.abort(404,u'Design not found.')
 
             owner = data[3]
             oldfiles = data[0:2]
             if not gal_utils.validateOwner(owner):
-                flask.abort(403,'Unauthorized.')
+                flask.abort(403,u'Unauthorized.')
 
             for file in oldfiles:
                 if os.path.isfile(file):
@@ -118,11 +120,11 @@ def uploadpng(design_id, jpeg, png):
                     except OSError:
                         pass
 
-            path = makeFilePath('uploads', owner)
-            filename = str(design_id) + ('.jpg' if jpeg else '.png')
-            imagepath = path + os.sep + 'full_' + filename
-            thumbpath = path + os.sep + 'thumb_' + filename
-            sm_thumbpath = path + os.sep + 'sm_thumb_' + filename
+            path = makeFilePath(u'uploads', owner)
+            filename = text(design_id) + (u'.jpg' if jpeg else u'.png')
+            imagepath = os.path.join(path, u'full_' + filename)
+            thumbpath = os.path.join(path, u'thumb_' + filename)
+            sm_thumbpath = os.path.join(path, u'sm_thumb_' + filename)
 
             resample(pngimage, (800,800), imagepath, jpeg)
             files.append(imagepath)
@@ -131,13 +133,13 @@ def uploadpng(design_id, jpeg, png):
             resample(pngimage, (100,100), sm_thumbpath, jpeg)
             files.append(sm_thumbpath)
 
-            cursor.execute('UPDATE gal_designs SET imagelocation=%s, '
-                           'thumblocation=%s, sm_thumblocation=%s,'
-                           'S3="N", imageversion=imageversion+1 '
-                           'WHERE designid=%s',
+            cursor.execute(u'UPDATE gal_designs SET imagelocation=%s, '
+                           u'thumblocation=%s, sm_thumblocation=%s,'
+                           u'S3="N", imageversion=imageversion+1 '
+                           u'WHERE designid=%s',
                            (imagepath,thumbpath,sm_thumbpath,design_id))
             if cursor.rowcount != 1:
-                flask.abort(500,'Cannot write database')
+                flask.abort(500,u'Cannot write database')
     except Exception as e:
         for file in files:
             if os.path.isfile(file):
@@ -149,7 +151,8 @@ def uploadpng(design_id, jpeg, png):
         if isinstance(e, HTTPException):
             raise
         else:
-            flask.abort(500,'Image upload failed')
+            #traceback.print_exc()
+            flask.abort(500,u'Image upload failed')
 
 
 def resample(image, newsize, filename, jpeg):
@@ -167,9 +170,9 @@ def resample(image, newsize, filename, jpeg):
     newimage = image.resize(finalsize, Image.BICUBIC)
 
     if jpeg:
-        newimage.save(filename, "JPEG", quality=85, optimize=True)
+        newimage.save(filename, u'JPEG', quality=85, optimize=True)
     else:
-        newimage.save(filename, "PNG", optimize=True)
+        newimage.save(filename, u'PNG', optimize=True)
 
 
 
