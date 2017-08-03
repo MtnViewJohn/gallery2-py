@@ -304,9 +304,6 @@ class Design:
 
 
 def DesignbyID(design_id):
-    if not isinstance(design_id, int) or design_id < 0:
-        flask.abort(400, u'Bad request')
-
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         if design_id > 0:           # get actual design
@@ -362,8 +359,7 @@ def complete(cursor):
 
 
 def DesignByDesigner(name, start, num):
-    if not gal_utils.legalOwner(name) or \
-        not isinstance(start, int) or not isinstance(num, int) or start < 0 or num < 1:
+    if not gal_utils.legalOwner(name):
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
@@ -373,9 +369,6 @@ def DesignByDesigner(name, start, num):
         return complete(cursor)
 
 def DesignByTitle(start, num):
-    if not isinstance(start, int) or not isinstance(num, int) or start < 0 or num < 1:
-        flask.abort(400,u'Bad request.')
-
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(Design.Query_base + u'ORDER BY title LIMIT %s,%s', (start,num))
@@ -395,20 +388,12 @@ def CountByTitle(title):
         return datum[0]
 
 def DesignByRandom(seed, start, num):
-    if not isinstance(seed, int) or not isinstance(start, int) or \
-            not isinstance(num, int) or start < 0 or num < 1:
-        flask.abort(400,u'Bad request.')
-
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(Design.Query_base + u'ORDER BY RAND(%s) LIMIT %s,%s', (seed,start,num))
         return complete(cursor)
 
 def DesignByDate(oldest, start, num):
-    if not isinstance(oldest, bool) or not isinstance(start, int) or \
-            not isinstance(num, int) or start < 0 or num < 1:
-        flask.abort(400,u'Bad request.')
-
     db = gal_utils.get_db()
     query = Design.Query_base + (u'ORDER BY whenuploaded LIMIT %s,%s' if oldest
                             else u'ORDER BY whenuploaded DESC LIMIT %s,%s')
@@ -417,8 +402,7 @@ def DesignByDate(oldest, start, num):
         return complete(cursor)
 
 def DesignFavorites(name, start, num):
-    if not gal_utils.legalOwner(name) or not isinstance(start, int) or \
-            not isinstance(num, int) or start < 0 or num < 1:
+    if not gal_utils.legalOwner(name):
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
