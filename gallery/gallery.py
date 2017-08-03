@@ -114,6 +114,14 @@ def get_favorites(name, start, num):
 
     return complete(design.DesignFavorites(name, start, num))
 
+@app.route(u'/popular/<int:start>/<int:num>')
+def get_popular(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad design count')
+
+    return complete(design.DesignByPopularity(start, num))
+
+
 @app.route(u'/oldest/<int:start>/<int:num>')
 def get_oldest(start, num):
     if num < 1 or num > 50:

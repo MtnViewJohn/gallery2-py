@@ -428,6 +428,14 @@ def DesignFavorites(name, start, num):
             'DESC LIMIT %s,%s', (name,start,num))
         return complete(cursor)
 
+def DesignByPopularity(start, num):
+    db = gal_utils.get_db()
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(Design.Query_base + u'ORDER BY numvotes DESC, '
+            u'whenuploaded DESC LIMIT %s,%s', (start,num))
+        return complete(cursor)
+
+
 
 
 
