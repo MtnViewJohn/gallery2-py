@@ -120,3 +120,32 @@ class User(UserMixin):
 
             if cursor.rowcount != 1:
                 flask.abort(500,u'Cannot update user table')
+
+def Newbie():
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'SELECT screenname, email, UNIX_TIMESTAMP(lastlogin), '
+                       u'UNIX_TIMESTAMP(joinedon), '
+                       u'numposts, numlogins, notify_of_comments, ccURI '
+                       u'FROM gal_users WHERE numposts >= 1 '
+                       u'ORDER BY joinedon DESC LIMIT 1')
+        data = cursor.fetchone()
+        if (data is None or not isinstance(data[0], text) or 
+                not isinstance(data[1], text) or not isinstance(data[4], int) or
+                not isinstance(data[5], int) or not isinstance(data[6], int) or
+                not isinstance(data[7], text)):
+            return None
+
+        user = User(data[0])
+        user.email = data[1]
+        user.lastlogin = data[2]
+        user.joinedon = data[3]
+        user.numposts = data[4]
+        user.numlogins = data[5]
+        user.notify = data[6] != 0
+        user.ccURI = data[7]
+        user.inGalUsers = True
+        return user
+
+
+

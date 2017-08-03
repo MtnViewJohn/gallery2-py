@@ -195,6 +195,15 @@ def gal_userinfo(username):
     else:
         return flask.json.jsonify({'userinfo': dict(u)})
 
+@app.route(u'/newbie')
+def get_newbie():
+    u = user.Newbie()
+    if u is None:
+        return flask.json.jsonify({'userinfo': {}})
+    else:
+        return flask.json.jsonify({'userinfo': dict(u)})
+
+
 @app.route(u'/notify/<int:notify>', methods=[u'POST'])
 @login_required
 def gal_set_notify(notify):
