@@ -94,6 +94,45 @@ def upload_cfdg(design_id, name):
 def pretty_cfdg(design_id):
     pass
 
+@app.route(u'/data/<dtype>/<int:design_id>', methods=[u'GET', u'HEAD'], 
+            defaults={'version': 0})
+@app.route(u'/data/<dtype>/<int:design_id>/<int:version>', methods=[u'GET', u'HEAD'])
+def get_data(dtype, design_id, version):
+    # version is ignored, it is just used for caches
+    if design_id <= 0:
+        flask.abort(400,u'Bad design id')
+    if dtype not in [u'cfdg', u'full', u'thumb', u'smallthumb', u'cclicense']:
+        flask.abort(400,u'Bad data type')
+
+    mydesign = design.DesignbyID(design_id)
+    if mydesign is None:
+        flask.abort(404,u'Design not found')
+
+    prefix = u'http://127.0.0.1/~john/cfa2/gallery/'
+    # TODO fix this to use url_root under apache
+
+    if dtype == u'cfdg':
+        newurl = prefix + mydesign.filelocation
+        if mydesign.variation:
+            newurl += u'?variation=' + mydesign.variation
+        return flask.redirect(newurl)
+
+    if mydesign.S3:
+        prefix = design.S3_dir
+
+    if dtype == u'full':
+        newurl = prefix + mydesign.imagelocation
+    elif dtype == u'thumb':
+        newurl = prefix + mydesign.thumblocation
+    elif dtype == u'smallthumb':
+        newurl = prefix + mydesign.sm_thumblocation
+    else:
+        if mydesign.ccURI:
+            newurl = mydesign.ccURI
+        else:
+            flask.abort(404,u'No CC license')
+    return flask.redirect(newurl)
+
 def complete(designs):
     jdesigns = map(design.Design.serialize, designs[1])
     if not isinstance(jdesigns, list):      # Test for Python3 behavior

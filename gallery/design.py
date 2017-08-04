@@ -7,8 +7,9 @@ import gal_utils
 from gal_utils import text
 #import traceback
 
+S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
+
 class Design:
-    S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
     Query_base = (u'SELECT designid, owner, title, variation, tiled, ccURI, ccName, '
                   u'ccImage, filelocation, S3, imageversion, imagelocation, '
                   u'thumblocation, sm_thumblocation, numvotes, '
