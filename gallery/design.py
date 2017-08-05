@@ -330,6 +330,12 @@ def DesignbyID(design_id):
             for row in rows:
                 design.tags.append(row['name'])
 
+        cursor.execute(u'SELECT name FROM gal_tag_names WHERE count>0 ORDER BY name')
+        allTags = []
+        tags = cursor.fetchall()
+        for tag in tags:
+            allTags.append(tag['name'])
+
         cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
             u'ORDER BY screenname', (design_id,))
         if cursor.rowcount > 0:
@@ -339,7 +345,7 @@ def DesignbyID(design_id):
                 design.fans.append(row['screenname'])
 
         design.normalize()
-        return design
+        return (design, allTags)
 
 def complete(cursor):
     if cursor.rowcount == 0: return (0, [])
