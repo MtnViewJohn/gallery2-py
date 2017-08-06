@@ -133,32 +133,43 @@ def get_data(dtype, design_id, version):
             flask.abort(404,u'No CC license')
     return flask.redirect(newurl)
 
-def complete(designs):
+def complete(designs, start, num, extra):
     jdesigns = map(design.Design.serialize, designs[1])
     if not isinstance(jdesigns, list):      # Test for Python3 behavior
         jdesigns = list(jdesigns)
-    return flask.json.jsonify({'count': designs[0], 'designs': jdesigns})
+    payload = {
+        'querysize': designs[0], 
+        'start': start,
+        'count': num,
+        'designs': jdesigns
+    }
+    payload.update(extra)
+
+    return flask.json.jsonify(payload)
 
 @app.route(u'/by/<name>/<int:start>/<int:num>')
 def get_designer(name, start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByDesigner(name, start, num))
+    return complete(design.DesignByDesigner(name, start, num), start, num, 
+                    {'type': u'by', 'designer': name})
 
 @app.route(u'/favorites/<name>/<int:start>/<int:num>')
 def get_favorites(name, start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignFavorites(name, start, num))
+    return complete(design.DesignFavorites(name, start, num), start, num, 
+                    {'type': u'faves', 'designer': name})
 
 @app.route(u'/popular/<int:start>/<int:num>')
 def get_popular(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByPopularity(start, num))
+    return complete(design.DesignByPopularity(start, num), start, num, 
+                    {'type': u'popular'})
 
 
 @app.route(u'/oldest/<int:start>/<int:num>')
@@ -166,32 +177,36 @@ def get_oldest(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByDate(True, start, num))
+    return complete(design.DesignByDate(True, start, num), start, num, 
+                    {'type': u'oldest'})
 
 @app.route(u'/newest/<int:start>/<int:num>')
 def get_newest(start, num):
     if num < 1 or num > 50:
         flask.abort(400,'uBad design count')
 
-    return complete(design.DesignByDate(False, start, num))
+    return complete(design.DesignByDate(False, start, num), start, num, 
+                    {'type': u'newest'})
 
 @app.route(u'/title/<int:start>/<int:num>')
 def get_titles(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
     
-    return complete(design.DesignByTitle(start, num))
+    return complete(design.DesignByTitle(start, num), start, num, 
+                    {'type': u'title'})
 
 @app.route(u'/titleindex/<title>')
 def get_title_num(title):
-    return flask.json.jsonify({'index': design.CountByTitle(title)})
+    return flask.json.jsonify({'index': design.CountByTitle(title), 'title': title})
 
 @app.route(u'/random/<int:seed>/<int:start>/<int:num>')
 def get_random(seed, start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByRandom(seed, start, num))
+    return complete(design.DesignByRandom(seed, start, num), start, num, 
+                    {'type': u'random', 'seed': seed})
 
 @app.route(u'/comments/<int:design_id>')
 def get_comments(design_id):
@@ -199,7 +214,7 @@ def get_comments(design_id):
     jcomments = map(comment.Comment.serialize, comments)
     if not isinstance(jcomments, list):     # Test for Python3 behavior
         jcomments = list(jcomments)
-    return flask.json.jsonify({'comments': jcomments})
+    return flask.json.jsonify({'designid': design_id, 'comments': jcomments})
 
 @app.route(u'/login/<username>/<password>/<int:rememberme>')
 def gal_login(username, password, rememberme):
