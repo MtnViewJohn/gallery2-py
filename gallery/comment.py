@@ -54,7 +54,7 @@ class Comment:
 
     def __iter__(self):
         yield 'screenname', self.screenname
-        yield 'comment', self.comment
+        yield 'comment', gal_utils.translate2Markdown(self.comment)
         yield 'postdate', self.postdate
         yield 'commentid', self.commentid
 

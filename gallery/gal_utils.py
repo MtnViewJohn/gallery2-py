@@ -70,3 +70,73 @@ def legalFilePath(filepath, cfdgfile):
     except:
         return True
 
+
+def translate2Markdown(legacy):
+    out = u''
+    pos = 0
+    while True:
+        cpos = legacy.find(u'[code]', pos)
+        lpos = legacy.find(u'[link ', pos)
+
+        if cpos == -1 and lpos == -1:
+            return out + legacy[pos:]
+
+        code = lpos == -1 or (cpos != -1 and cpos < lpos)
+
+        xpos = cpos if code else lpos
+        out += legacy[pos:xpos]
+
+        if code:
+            pos = cpos + 6
+            if out and out[-1] != u'\n':
+                out += u'\n'
+            out += u'```cfdg'
+            if legacy[pos] != u'\n':
+                out += u'\n'
+            cpos = legacy.find(u'[/code]', pos)
+            if cpos == -1:
+                return out + legacy[pos:] + u'\n```'
+            out += legacy[pos:cpos]
+            pos = cpos + 7
+            if out[-1] != u'\n':
+                out += u'\n'
+            out += u'```'
+            if legacy[pos] != u'\n':
+                out += u'\n'
+        else:
+            pos = lpos + 6
+            lpos = legacy.find(u']', pos)
+            if lpos == -1:
+                return out
+            link = legacy[pos:lpos]
+            pos = lpos + 1
+            lpos = legacy.find(u'[/link]', pos)
+            if lpos == -1:
+                out += u'[' + legacy[pos:] + u']'
+            else:
+                out += u'[' + legacy[pos:lpos] + u']'
+                pos = lpos + 7
+            out += u'(' + linkCvt(link) + u')'
+            if lpos == -1:
+                return out
+
+validChars = bytearray('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~!$&\'()*+,;=?', 'utf-8')
+
+def encodeFragment(ustr):
+    bytesutf8 = bytearray(ustr, 'utf-8')
+    ret = u''
+    for b in bytesutf8:
+        if b in validChars:
+            ret += chr(b)
+        else:
+            ret += u'%{:02X}'.format(b)
+    return ret
+
+def linkCvt(oldLink):
+    if oldLink.lstrip().startswith(u'user:'):
+        return u'#user/' + encodeFragment(oldLink[5:].strip())
+    if oldLink.lstrip().startswith(u'design:'):
+        return u'#design/' + oldLink[7:].strip()
+    return oldLink.strip()
+
+
