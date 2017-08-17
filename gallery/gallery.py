@@ -8,9 +8,11 @@ import comment
 import user
 import upload
 import gal_utils
+from flask_cors import CORS
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
+CORS(app, supports_credentials=True)
 
 @app.teardown_appcontext
 def close_db(error):
@@ -264,6 +266,10 @@ def gal_set_notify(notify):
     u.notify = notify != 0
     u.save()
     return flask.json.jsonify({'userinfo': dict(u)})
+
+@app.route(u'/uploads/<path:path>', methods=[u'GET'])
+def getStaticFile(path):
+    return flask.send_from_directory('uploads', path)
 
 
 
