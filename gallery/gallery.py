@@ -108,17 +108,13 @@ def get_data(dtype, design_id, version):
     if mydesign is None:
         flask.abort(404,u'Design not found')
 
-    prefix = u'http://127.0.0.1/~john/cfa2/gallery/'
-    # TODO fix this to use url_root under apache
-
     if dtype == u'cfdg':
-        newurl = prefix + mydesign.filelocation
+        newurl = mydesign.filelocation.replace(u'//', u'/')
         if mydesign.variation:
             newurl += u'?variation=' + mydesign.variation
         return flask.redirect(newurl)
 
-    if mydesign.S3:
-        prefix = design.S3_dir
+    prefix = design.S3_dir if mydesign.S3 else u''
 
     if dtype == u'full':
         newurl = prefix + mydesign.imagelocation

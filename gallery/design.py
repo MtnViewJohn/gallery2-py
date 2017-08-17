@@ -137,18 +137,23 @@ class Design:
     def serialize(self):
         return dict(self)
 
+    def imageHelper(self, url):
+        vurl = url + u"?" + text(self.imageversion)
+        if self.S3:
+            return S3_dir + vurl
+        else:
+            return vurl
+
     def __iter__(self):
         yield 'designid', self.designid
         yield 'owner', self.owner
         yield 'title', self.title
         yield 'variation', self.variation
         yield 'tiled', self.tiled
-        yield 'S3', self.S3
         yield 'filelocation', self.filelocation
-        yield 'imagelocation', self.imagelocation
-        yield 'thumblocation', self.thumblocation
-        yield 'sm_thumblocation', self.sm_thumblocation
-        yield 'imageversion', self.imageversion
+        yield 'imagelocation', self.imageHelper(self.imagelocation)
+        yield 'thumblocation', self.imageHelper(self.thumblocation)
+        yield 'smthumblocation', self.imageHelper(self.sm_thumblocation)
         yield 'numvotes', self.numvotes
         yield 'notes', self.notes
         yield 'ccURI', self.ccURI

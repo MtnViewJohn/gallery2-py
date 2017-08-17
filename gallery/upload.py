@@ -18,7 +18,7 @@ def trim(jdata):
     jdata.pop('imageversion', None)
     jdata.pop('imagelocation', None)
     jdata.pop('thumblocation', None)
-    jdata.pop('sm_thumblocation', None)
+    jdata.pop('smthumblocation', None)
     jdata.pop('numvotes', None)
     jdata.pop('uploaddate', None)
 
