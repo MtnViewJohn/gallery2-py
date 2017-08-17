@@ -214,7 +214,7 @@ def get_comments(design_id):
         jcomments = list(jcomments)
     return flask.json.jsonify({'designid': design_id, 'comments': jcomments})
 
-@app.route(u'/login/<username>/<password>/<int:rememberme>')
+@app.route(u'/login/<username>/<password>/<int:rememberme>', methods=[u'POST'])
 def gal_login(username, password, rememberme):
     newuser = user.canLogin(username, password)
     if newuser is not None:
@@ -226,7 +226,7 @@ def gal_login(username, password, rememberme):
 
     return flask.json.jsonify({'userinfo': {}})
 
-@app.route(u'/logout')
+@app.route(u'/logout', methods=[u'POST'])
 @login_required
 def gal_logout():
     logout_user()
