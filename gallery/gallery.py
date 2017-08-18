@@ -122,7 +122,7 @@ def get_data(dtype, design_id):
             newurl = mydesign.ccURI
         else:
             flask.abort(404,u'No CC license')
-    return flask.redirect(newurl)
+    return flask.redirect(newurl.replace(u'//', u'/'))
 
 def complete(designs, start, num, qpath):
     jdesigns = map(design.Design.serialize, designs[1])
