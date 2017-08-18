@@ -140,6 +140,7 @@ def complete(designs, start, num, qpath):
         'count': num,
         'prevlink': prevlink,
         'nextlink': nextlink,
+        'thislink': u'/'.join([qpath, str(start)]),
         'designs': jdesigns
     }
 
