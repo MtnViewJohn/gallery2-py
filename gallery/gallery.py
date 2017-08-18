@@ -92,15 +92,8 @@ def upload_cfdg(design_id, name):
     upload.uploadcfdg(design_id, name, cfdg)
     return flask.json.jsonify({'success': True})
 
-@app.route(u'/prettycfdg/<int:design_id>')
-def pretty_cfdg(design_id):
-    pass
-
-@app.route(u'/data/<dtype>/<int:design_id>', methods=[u'GET', u'HEAD'], 
-            defaults={'version': 0})
-@app.route(u'/data/<dtype>/<int:design_id>/<int:version>', methods=[u'GET', u'HEAD'])
-def get_data(dtype, design_id, version):
-    # version is ignored, it is just used for caches
+@app.route(u'/data/<dtype>/<int:design_id>', methods=[u'GET', u'HEAD'])
+def get_data(dtype, design_id):
     if design_id <= 0:
         flask.abort(400,u'Bad design id')
     if dtype not in [u'cfdg', u'full', u'thumb', u'smallthumb', u'cclicense']:
