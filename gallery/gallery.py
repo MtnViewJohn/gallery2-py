@@ -131,17 +131,24 @@ def get_data(dtype, design_id, version):
             flask.abort(404,u'No CC license')
     return flask.redirect(newurl)
 
-def complete(designs, start, num, extra):
+def complete(designs, start, num, qpath):
     jdesigns = map(design.Design.serialize, designs[1])
     if not isinstance(jdesigns, list):      # Test for Python3 behavior
         jdesigns = list(jdesigns)
+    
+    pstart = 0 if start < num else start - num
+
+    prevlink = u'/'.join([qpath, str(pstart), str(num)]) if start > 0 else u''
+    nextlink = u'/'.join([qpath, str(start + num), str(num)]) if designs[0] == num else u''
+
     payload = {
         'querysize': designs[0], 
         'start': start,
         'count': num,
+        'prevlink': prevlink,
+        'nextlink': nextlink,
         'designs': jdesigns
     }
-    payload.update(extra)
 
     return flask.json.jsonify(payload)
 
@@ -151,15 +158,15 @@ def get_designer(name, start, num):
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByDesigner(name, start, num), start, num, 
-                    {'type': u'by', 'designer': name})
+                    u'by/' + name)
 
-@app.route(u'/favorites/<name>/<int:start>/<int:num>')
+@app.route(u'/faves/<name>/<int:start>/<int:num>')
 def get_favorites(name, start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignFavorites(name, start, num), start, num, 
-                    {'type': u'faves', 'designer': name})
+                    u'faves/' + name)
 
 @app.route(u'/popular/<int:start>/<int:num>')
 def get_popular(start, num):
@@ -167,7 +174,7 @@ def get_popular(start, num):
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByPopularity(start, num), start, num, 
-                    {'type': u'popular'})
+                    u'popular')
 
 
 @app.route(u'/oldest/<int:start>/<int:num>')
@@ -176,15 +183,15 @@ def get_oldest(start, num):
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByDate(True, start, num), start, num, 
-                    {'type': u'oldest'})
+                    u'oldest')
 
 @app.route(u'/newest/<int:start>/<int:num>')
 def get_newest(start, num):
     if num < 1 or num > 50:
-        flask.abort(400,'uBad design count')
+        flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByDate(False, start, num), start, num, 
-                    {'type': u'newest'})
+                    u'newest')
 
 @app.route(u'/title/<int:start>/<int:num>')
 def get_titles(start, num):
@@ -192,7 +199,7 @@ def get_titles(start, num):
         flask.abort(400,u'Bad design count')
     
     return complete(design.DesignByTitle(start, num), start, num, 
-                    {'type': u'title'})
+                    u'title')
 
 @app.route(u'/titleindex/<title>')
 def get_title_num(title):
@@ -204,7 +211,7 @@ def get_random(seed, start, num):
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByRandom(seed, start, num), start, num, 
-                    {'type': u'random', 'seed': seed})
+                    u'random/' + str(seed))
 
 @app.route(u'/comments/<int:design_id>')
 def get_comments(design_id):
