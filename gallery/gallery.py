@@ -162,6 +162,22 @@ def get_favorites(name, start, num):
     return complete(design.DesignFavorites(name, start, num), start, num, 
                     u'faves/' + name)
 
+@app.route(u'/tag/<tag>/<int:start>/<int:num>')
+def get_tagged(tag, start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad design count')
+    if len(tag.split()) != 1 or tag != tag.strip():
+        flask.abort(400,u'Bad tag')
+
+    return complete(design.DesignTagged(tag, start, num), start, num, 
+                    u'tag/' + tag)
+
+@app.route(u'/tags')
+def get_tags():
+    return flask.json.jsonify({'tags': design.AllTags()})
+
+
+
 @app.route(u'/popular/<int:start>/<int:num>')
 def get_popular(start, num):
     if num < 1 or num > 50:

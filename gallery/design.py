@@ -431,6 +431,33 @@ def DesignByPopularity(start, num):
             u'whenuploaded DESC LIMIT %s,%s', (start,num))
         return complete(cursor)
 
+def DesignTagged(tag, start, num):
+    db = gal_utils.get_db()
+    with closing(db.cursor()) as cursor:
+        cursor.execute(u'SELECT id FROM gal_tag_names WHERE name=%s', (tag,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
+        tagid = datum[0]
+
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(Design.Query_base_d + ', gal_tags AS t WHERE '
+            't.tag=%s AND t.item = d.designid ORDER BY d.designid '
+            'DESC LIMIT %s,%s', (tagid,start,num))
+        return complete(cursor)
+
+def AllTags():
+    db = gal_utils.get_db()
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(u'SELECT name, count FROM gal_tag_names WHERE count>0 ORDER BY name')
+        data = cursor.fetchall()
+        if data is None:
+            flask.abort(500,u'Failed to get tags')
+        return data
+
+
+
+
 
 
 
