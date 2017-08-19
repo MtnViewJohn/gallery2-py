@@ -152,7 +152,7 @@ def get_designer(name, start, num):
         flask.abort(400,u'Bad design count')
 
     return complete(design.DesignByDesigner(name, start, num), start, num, 
-                    u'by/' + name)
+                    u'user/' + name)
 
 @app.route(u'/faves/<name>/<int:start>/<int:num>')
 def get_favorites(name, start, num):
