@@ -147,5 +147,60 @@ def Newbie():
         user.inGalUsers = True
         return user
 
+class MiniUser:
+    Query_base = (u'SELECT screenname, UNIX_TIMESTAMP(joinedon), numposts FROM '
+                  u'gal_users WHERE numposts>0 ')
+
+    def __init__(self, row):
+        self.name = row[0]
+        self.joinedon = row[1]
+        self.numposts = row[2]
+
+    def serialize(self):
+        return dict(self)
+
+    def __iter__(self):
+        yield 'username', self.name
+        yield 'joinedon', self.joinedon
+        yield 'numposts', self.numposts
+
+
+def complete(cursor):
+    if cursor.rowcount == 0: return (0, [])
+
+    rows = cursor.fetchall()
+
+    ret = []
+    for row in rows:
+        try:
+            user = MiniUser(row)
+            ret.append(user)
+        except:
+            pass
+
+    return (cursor.rowcount, ret)
+
+
+def UsersByName(start, num):
+    query = MiniUser.Query_base + u'ORDER BY screenname LIMIT %s,%s'
+    db = gal_utils.get_db()
+    with closing(db.cursor()) as cursor:
+        cursor.execute(query, (start,num))
+        return complete(cursor)
+
+def UsersByJoindate(start, num):
+    query = MiniUser.Query_base + u'ORDER BY joinedon LIMIT %s,%s'
+    db = gal_utils.get_db()
+    with closing(db.cursor()) as cursor:
+        cursor.execute(query, (start,num))
+        return complete(cursor)
+
+def UsersByPosts(start, num):
+    query = MiniUser.Query_base + u'ORDER BY numposts DESC, screenname LIMIT %s,%s'
+    db = gal_utils.get_db()
+    with closing(db.cursor()) as cursor:
+        cursor.execute(query, (start,num))
+        return complete(cursor)
+
 
 

@@ -288,6 +288,49 @@ def gal_set_notify(notify):
 def getStaticFile(path):
     return flask.send_from_directory('uploads', path)
 
+def ucomplete(users, start, num, qpath):
+    jusers = map(user.MiniUser.serialize, users[1])
+    if not isinstance(jusers, list):      # Test for Python3 behavior
+        jusers = list(jusers)
+    
+    pstart = 0 if start < num else start - num
+
+    prevlink = u'/'.join([qpath, str(pstart), str(num)]) if start > 0 else u''
+    nextlink = u'/'.join([qpath, str(start + num), str(num)]) if users[0] == num else u''
+
+    payload = {
+        'querysize': users[0], 
+        'start': start,
+        'count': num,
+        'prevlink': prevlink,
+        'nextlink': nextlink,
+        'thislink': u'/'.join([qpath, str(start), str(num)]),
+        'users': jusers
+    }
+
+    return flask.json.jsonify(payload)
+
+@app.route(u'/users/name/<int:start>/<int:num>')
+def usersByName(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByName(start,num), start, num, u'users/name')
+
+@app.route(u'/users/joined/<int:start>/<int:num>')
+def usersByJoindate(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByJoindate(start,num), start, num, u'users/joined')
+
+@app.route(u'/users/posts/<int:start>/<int:num>')
+def usersByPosts(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByPosts(start,num), start, num, u'users/posts')
+
 
 
 
