@@ -122,7 +122,9 @@ def get_data(dtype, design_id):
             newurl = mydesign.ccURI
         else:
             flask.abort(404,u'No CC license')
-    return flask.redirect(newurl.replace(u'//', u'/'))
+    if not mydesign.S3:     # S3 requires verbatim url but flask chokes on //
+        newurl = newurl.replace(u'//', u'/')
+    return flask.redirect(newurl)
 
 def complete(designs, start, num, qpath):
     jdesigns = map(design.Design.serialize, designs[1])
