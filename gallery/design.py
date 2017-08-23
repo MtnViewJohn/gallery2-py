@@ -5,6 +5,7 @@ from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 import gal_utils
 from gal_utils import text
+from PIL import Image
 #import traceback
 
 S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
@@ -164,6 +165,8 @@ class Design:
             yield 'tags', self.tags
         if hasattr(self, 'fans'):
             yield 'fans', self.fans
+        if hasattr(self, 'imagesize'):
+            yield 'imagesize', self.imagesize
 
 
     def normalize(self):
@@ -350,6 +353,12 @@ def DesignbyID(design_id):
                 design.fans.append(row['screenname'])
 
         design.normalize()
+        
+        im = Image.open(design.imagelocation)
+        if im is not None:
+            width,height = im.size
+        design.imagesize = {'width': width, 'height': height}
+
         return (design, allTags)
 
 def complete(cursor):
@@ -363,6 +372,10 @@ def complete(cursor):
             design = Design(**row)
             design.normalize()
             if design.ready4display():
+                im = Image.open(design.thumblocation)
+                if im is not None:
+                    width,height = im.size
+                design.imagesize = {'width': width, 'height': height}
                 ret.append(design)
         except:
             pass
