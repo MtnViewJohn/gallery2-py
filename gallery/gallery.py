@@ -272,7 +272,12 @@ def get_newbie():
     if u is None:
         return flask.json.jsonify({'userinfo': {}})
     else:
-        return flask.json.jsonify({'userinfo': dict(u)})
+        count, designs = design.DesignByDesigner(u.id, 0, 1)
+        if len(designs) > 0:
+            return flask.json.jsonify({ 'design': dict(designs[0])})
+        else:
+            return flask.json.jsonify({ 'design': {}})
+
 
 
 @app.route(u'/notify/<int:notify>', methods=[u'POST'])
