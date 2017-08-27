@@ -468,6 +468,56 @@ def AllTags():
             flask.abort(500,u'Failed to get tags')
         return data
 
+def AddFave(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'SELECT screenname, designid FROM gal_favorites WHERE '
+            u'screenname=%s AND designid=%s', (current_user.id,design_id))
+        res = cursor.fetchall()
+        if cursor.rowcount > 0:
+            flask.abort(400, u'Design already in favorites')
+        
+        cursor.execute(u'INSERT INTO gal_favorites (screenname, designid) VALUES (%s, %s)',
+            (current_user.id,design_id))
+        if cursor.rowcount != 1:
+            flask.abort(500, u'Could not add favorite')
+
+        cursor.execute('UPDATE gal_designs SET numvotes = numvotes + 1 WHERE designid = %s',
+            (design_id,))
+        if cursor.rowcount != 1:
+            flask.abort(500, u'Could not add favorite.')
+
+        ret = []        
+        cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
+            u'ORDER BY screenname', (design_id,))
+        rows = cursor.fetchall()
+        for row in rows:
+            ret.append(row[0])
+        return ret
+
+
+def DeleteFave(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'DELETE FROM gal_favorites WHERE screenname=%s AND designid=%s',
+            (current_user.id,design_id))
+        if cursor.rowcount != 1:
+            flask.abort(500, u'Could not delete favorite')
+
+        cursor.execute('UPDATE gal_designs SET numvotes = numvotes - 1 WHERE designid = %s',
+            (design_id,))
+        if cursor.rowcount != 1:
+            flask.abort(500, u'Could not delete favorite.')
+
+        ret = []        
+        cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
+            u'ORDER BY screenname', (design_id,))
+        rows = cursor.fetchall()
+        for row in rows:
+            ret.append(row[0])
+        return ret
+
+
 
 
 

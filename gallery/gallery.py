@@ -254,6 +254,18 @@ def deleteComment(comment_id):
     comment.DeleteComment(comment_id)
     return flask.json.jsonify({'commentid': comment_id})
 
+@app.route(u'/addfave/<int:design_id>', methods=[u'POST'])
+@login_required
+def addFave(design_id):
+    newfaves = design.AddFave(design_id)
+    return flask.json.jsonify({'designid': design_id, 'faves': newfaves})
+
+@app.route(u'/deletefave/<int:design_id>', methods=[u'POST'])
+@login_required
+def deleteFave(design_id):
+    newfaves = design.DeleteFave(design_id)
+    return flask.json.jsonify({'designid': design_id, 'faves': newfaves})
+
 @app.route(u'/login/<username>/<password>/<int:rememberme>', methods=[u'POST'])
 def gal_login(username, password, rememberme):
     newuser = user.canLogin(username, password)
