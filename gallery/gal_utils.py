@@ -133,9 +133,10 @@ def encodeFragment(ustr):
     return ret
 
 def linkCvt(oldLink):
-    if oldLink.lstrip().startswith(u'user:'):
+    oldLink = oldLink.lstrip()
+    if oldLink.startswith(u'user:'):
         return u'#user/' + encodeFragment(oldLink[5:].strip())
-    if oldLink.lstrip().startswith(u'design:'):
+    if oldLink.startswith(u'design:'):
         return u'#design/' + oldLink[7:].strip()
     return oldLink.strip()
 
