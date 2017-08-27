@@ -4,6 +4,7 @@ from contextlib import closing
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 import gal_utils
+from flask_login import current_user
 
 class Comment:
     Query_base = (u'SELECT screenname, comment, UNIX_TIMESTAMP(whenposted) AS postdate, '
@@ -54,7 +55,8 @@ class Comment:
 
     def __iter__(self):
         yield 'screenname', self.screenname
-        yield 'comment', gal_utils.translate2Markdown(self.comment)
+        yield 'comment', self.comment
+        yield 'commentmd', gal_utils.translate2Markdown(self.comment)
         yield 'postdate', self.postdate
         yield 'commentid', self.commentid
 
@@ -105,5 +107,57 @@ def CommentsByDesign(designid):
             ret.append(comment)
 
         return ret
+
+def CommentById(commentid):
+    if not isinstance(commentid, int) or commentid < 1:
+        flask.abort(400, u'Bad comment id')
+
+    db = gal_utils.get_db()
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(Comment.Query_base + u'WHERE commentid=%s', (commentid,))
+        if cursor.rowcount != 1:
+            flask.abort(404, u'Comment not in database')
+
+        row = cursor.fetchone()
+        comment = Comment(**row)
+        comment.normalize()
+        return comment
+
+def UpdateComment(commentid, newComment):
+    if not isinstance(commentid, int) or commentid < 1:
+        flask.abort(400, u'Bad comment id')
+
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u"UPDATE gal_comments SET comment = %s WHERE screenname=%s AND commentid=%s",
+            (newComment,current_user.id,commentid))
+        if cursor.rowcount != 1:
+            flask.abort(403, u'Cannot update comment')
+        return CommentById(commentid)
+
+def CreateComment(designid, newComment):
+    if not isinstance(designid, int) or designid < 1:
+        flask.abort(400, u'Bad design id')
+
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'INSERT INTO gal_comments (screenname, designid, whenposted, comment) '
+            u'VALUES (%s, %s, NOW(), %s)', (current_user.id,designid,newComment))
+        commentid = cursor.lastrowid
+        if cursor.rowcount != 1:
+            flask.abort(403, u'Cannot add comment')
+        return CommentById(commentid)
+
+def DeleteComment(commentid):
+    if not isinstance(commentid, int) or commentid < 1:
+        flask.abort(400, u'Bad comment id')
+
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u"DELETE FROM gal_comments WHERE screenname=%s AND commentid=%s",
+            (current_user.id,commentid))
+        if cursor.rowcount != 1:
+            flask.abort(403, u'Cannot delete comment')
+
 
 

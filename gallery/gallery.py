@@ -233,6 +233,27 @@ def get_comments(design_id):
         jcomments = list(jcomments)
     return flask.json.jsonify({'designid': design_id, 'comments': jcomments})
 
+@app.route(u'/updatecomment/<int:comment_id>', methods=[u'PUT'])
+@login_required
+def updateComment(comment_id):
+    newText = flask.request.data
+    cmt = comment.UpdateComment(comment_id, newText)
+    return flask.json.jsonify(dict(cmt))
+
+@app.route(u'/createcomment/<int:design_id>', methods=[u'PUT'])
+@login_required
+def createComment(design_id):
+    newText = flask.request.data
+    cmt = comment.CreateComment(design_id, newText)
+    print dict(cmt)
+    return flask.json.jsonify(dict(cmt))
+
+@app.route(u'/deletecomment/<int:comment_id>', methods=[u'POST'])
+@login_required
+def deleteComment(comment_id):
+    comment.DeleteComment(comment_id)
+    return flask.json.jsonify({'commentid': comment_id})
+
 @app.route(u'/login/<username>/<password>/<int:rememberme>', methods=[u'POST'])
 def gal_login(username, password, rememberme):
     newuser = user.canLogin(username, password)
