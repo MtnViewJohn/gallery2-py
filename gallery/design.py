@@ -10,6 +10,15 @@ from PIL import Image
 
 S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
 
+CC_names = {
+    u'by':       u'Creative Commons Attribution 4.0 International',
+    u'by-sa':    u'Creative Commons Attribution-ShareAlike 4.0 International',
+    u'by-nd':    u'Creative Commons Attribution-NoDerivatives 4.0 International',
+    u'by-nc':    u'Creative Commons Attribution-NonCommercial 4.0 International',
+    u'by-nc-sa': u'Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International',
+    u'by-nc-nd': u'Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International'
+}
+
 class Design:
     Query_base = (u'SELECT designid, owner, title, variation, tiled, ccURI, ccName, '
                   u'ccImage, filelocation, S3, imageversion, imagelocation, '
@@ -62,6 +71,19 @@ class Design:
                     self.ccName = data['ccName']
                     self.ccImage = data['ccImage']
                 else:
+                    self.ccURI = u''
+                    self.ccName = u''
+                    self.ccImage = u'No license chosen'
+            elif 'cclicense' in data and isinstance(data['cclicense'], text):
+                if data['cclicense'] == u'zero':
+                    self.ccURI = u'https://creativecommons.org/publicdomain/zero/1.0/'
+                    self.ccName = u'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
+                    self.ccImage = u'http://i.creativecommons.org/p/zero/1.0/88x31.png'
+                elif data['cclicense'] in CC_names:
+                    self.ccURI = u'https://creativecommons.org/licenses/' + data['cclicense'] + u'/4.0/'
+                    self.ccName = CC_names[data['cclicense']]
+                    self.ccImage = u'http://i.creativecommons.org/l/'  + data['cclicense'] + u'/4.0/88x31.png'
+                elif data['cclicense'] != u'-':
                     self.ccURI = u''
                     self.ccName = u''
                     self.ccImage = u'No license chosen'
@@ -354,10 +376,13 @@ def DesignbyID(design_id):
 
         design.normalize()
         
-        im = Image.open(design.imagelocation)
-        if im is not None:
-            width,height = im.size
-        design.imagesize = {'width': width, 'height': height}
+        try:
+            im = Image.open(design.imagelocation)
+            if im is not None:
+                width,height = im.size
+            design.imagesize = {'width': width, 'height': height}
+        except:
+            pass
 
         return (design, allTags)
 

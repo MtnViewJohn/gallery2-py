@@ -8,7 +8,9 @@ import comment
 import user
 import upload
 import gal_utils
+from gal_utils import text
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -35,40 +37,65 @@ def get_design(design_id):
         return flask.json.jsonify({ 'design': dict(mydesign), 'tags': tags})
 
 @app.route(u'/postdesign', methods=[u'POST'])
-@login_required
 def put_design():
-    jdesign = flask.request.get_json()
+    try:
+        fdesign = dict(flask.request.form.iteritems())
+        if not isinstance(fdesign, dict):
+            return gal_utils.errorUrl(u'No data received.')
+        if not current_user.is_authenticated:
+            if u'screenname' not in fdesign or u'password' not in fdesign:
+                return gal_utils.errorUrl(u'Not logged in/no user credentils provided.')
+            
+            newuser = user.canLogin(fdesign['screenname'], fdesign['password'])
+            if newuser is None:
+                return gal_utils.errorUrl(u'Incorrect login credentials.')
+            login_user(newuser, remember=False)
 
-    upload.trim(jdesign)
+        upload.formfix(fdesign)
 
-    if 'designid' in jdesign:
-        design_id = jdesign['designid']
-        if not isinstance(design_id, int) or design_id <= 0:
-            flask.abort(400,u'Bad design id')
-        d = design.DesignbyID(design_id)[0] # Get design from database
+        cfdgPresent  = (u'cfdgfile' in flask.request.files and 
+                        flask.request.files[u'cfdgfile'].filename != u'')
+        imagePresent = (u'imagefile' in flask.request.files and 
+                        flask.request.files[u'imagefile'].filename != u'')
 
-        if d is None:
-            flask.abort(404,u'Design not found.')
-        if not gal_utils.validateOwner(d.owner):
-            flask.abort(403,u'Unauthorized.')
-        
-        d.init(**jdesign)                   # Merge in changes from POST
-    else:
-        d = design.Design(**jdesign)        # Create new design from POST
+        if u'designid' in fdesign:
+            design_id = fdesign['designid']
+            if not isinstance(design_id, int) or design_id <= 0:
+                return gal_utils.errorUrl(u'Bad design id.')
+            d = design.DesignbyID(design_id)[0] # Get design from database
 
-    d.normalize()
-    id = d.save()
-    if id is not None:
-        return flask.json.jsonify({
-            'getdesign': flask.url_for('get_design', design_id=id),
-            'putimage': flask.url_for('upload_image', design_id=id, jpeg=0),
-            'putcfdg': flask.url_for('upload_cfdg', design_id=id, name='name.cfdg')
-        })
-    else:
-        if 'designid' in jdesign:
-            return flask.json.jsonify({'error': u'Could not update design'})
+            if d is None:
+                return gal_utils.errorUrl(u'Design not found.')
+            if not gal_utils.validateOwner(d.owner):
+                return gal_utils.errorUrl(u'Unauthorized to edit this design.')
+            
+            d.init(**fdesign)                   # Merge in changes from POST
         else:
-            return flask.json.jsonify({'error': u'Could not insert design'})
+            if not (cfdgPresent and imagePresent):
+                return gal_utils.errorUrl(u'Upload missing cfdg or PNG file.')
+            d = design.Design(**fdesign)        # Create new design from POST
+
+        d.normalize()
+        id = d.save()
+
+        if id is not None:
+            jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
+            if cfdgPresent:
+                upload.uploadcfdg(d, flask.request.files['cfdgfile'])
+            if imagePresent:
+                upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
+            newurl = u'http://localhost:8000/main.html#design/' + text(id)
+            return flask.redirect(newurl, code=303)
+        else:
+            return gal_utils.errorUrl(u'Failed to save design.')
+
+    except HTTPException as e:
+        print e
+        return gal_utils.errorUrl(text(e))
+    except Exception as e:
+        print e
+        return gal_utils.errorUrl(u'Unknown error occured.')
+
 
 @app.route(u'/image/<int:design_id>/<int:jpeg>', methods=[u'PUT'])
 @login_required

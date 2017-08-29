@@ -140,4 +140,10 @@ def linkCvt(oldLink):
         return u'#design/' + oldLink[7:].strip()
     return oldLink.strip()
 
+def errorUrl(msg):
+    if msg[0:3].isdigit():
+        msg = msg[3:]
+    url = u'http://localhost:8000/main.html#error/' + encodeFragment(msg)
+    return flask.redirect(url, code = 303)
+
 
