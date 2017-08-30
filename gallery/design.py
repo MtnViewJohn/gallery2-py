@@ -6,6 +6,8 @@ from werkzeug.exceptions import HTTPException
 import gal_utils
 from gal_utils import text
 from PIL import Image
+import os
+import os.path
 #import traceback
 
 S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
@@ -332,6 +334,43 @@ class Design:
                 owner.save()
                 return self.designid
         return None
+
+def DeleteDesign(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        query = Design.Query_base + u'WHERE designid=%s'
+        cursor.execute(query, (design_id,))
+
+        if cursor.rowcount != 1:
+            return flask.abort(404, u'Cannot find design to delete.')
+
+        design = Design(**cursor.fetchone())
+        print design
+
+        if not gal_utils.validateOwner(design.owner):
+            flask.abort(403, u'Unauthorized to delete this design.')
+
+        # TODO update tag counts
+
+        cursor.execute(u'DELETE FROM gal_designs WHERE designid=%s', (design_id,))
+        if cursor.rowcount != 1:
+            flask.abort(500, u'Design failed to be deleted.')
+        cursor.execute(u'DELETE FROM gal_comments WHERE designid=%s', (design_id,))
+        cursor.execute(u'DELETE FROM gal_favorites WHERE designid=%s', (design_id,))
+        cursor.execute(u'UPDATE gal_users SET numposts = numposts - 1 WHERE screenname=%s',
+            (design.owner,))
+
+        files = [design.filelocation, design.imagelocation, 
+                 design.thumblocation, design.sm_thumblocation]
+        for file in files:
+            if os.path.isfile(file):
+                try:
+                    os.unlink(file)
+                except OSError:
+                    pass
+
+
+
 
 
 def DesignbyID(design_id):

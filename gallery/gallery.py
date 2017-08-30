@@ -96,28 +96,12 @@ def put_design():
         print e
         return gal_utils.errorUrl(u'Unknown error occured.')
 
-
-@app.route(u'/image/<int:design_id>/<int:jpeg>', methods=[u'PUT'])
+@app.route(u'/delete/<int:design_id>', methods=[u'POST'])
 @login_required
-def upload_image(design_id, jpeg):
-    if design_id <= 0:
-        flask.abort(400,u'Bad design id')
-    png = flask.request.data
-    if png is None or len(png) == 0:
-        flask.abort(400,u'Bad PNG')
-    upload.uploadpng(design_id, jpeg != 0, png)
-    return flask.json.jsonify({'success': True})
+def deleteDesign(design_id):
+    design.DeleteDesign(design_id)
+    return flask.json.jsonify({'designid': design_id})
 
-@app.route(u'/cfdg/<int:design_id>/<name>', methods=[u'PUT'])
-@login_required
-def upload_cfdg(design_id, name):
-    if design_id <= 0:
-        flask.abort(400,u'Bad design id')
-    cfdg = flask.request.data
-    if cfdg is None or len(cfdg) == 0:
-        flask.abort(400,u'Bad cfdg')
-    upload.uploadcfdg(design_id, name, cfdg)
-    return flask.json.jsonify({'success': True})
 
 @app.route(u'/data/<dtype>/<int:design_id>', methods=[u'GET', u'HEAD'])
 def get_data(dtype, design_id):
