@@ -159,30 +159,33 @@ def complete(designs, start, num, qpath):
 
     return flask.json.jsonify(payload)
 
-@app.route(u'/by/<name>/<int:start>/<int:num>')
-def get_designer(name, start, num):
+@app.route(u'/by/<name>/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccby/<name>/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_designer(name, start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByDesigner(name, start, num), start, num, 
+    return complete(design.DesignByDesigner(name, start, num, ccOnly), start, num, 
                     u'user/' + name)
 
-@app.route(u'/faves/<name>/<int:start>/<int:num>')
-def get_favorites(name, start, num):
+@app.route(u'/faves/<name>/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccfaves/<name>/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_favorites(name, start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignFavorites(name, start, num), start, num, 
+    return complete(design.DesignFavorites(name, start, num, ccOnly), start, num, 
                     u'faves/' + name)
 
-@app.route(u'/tag/<tag>/<int:start>/<int:num>')
-def get_tagged(tag, start, num):
+@app.route(u'/tag/<tag>/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/cctag/<tag>/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_tagged(tag, start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
     if len(tag.split()) != 1 or tag != tag.strip():
         flask.abort(400,u'Bad tag')
 
-    return complete(design.DesignTagged(tag, start, num), start, num, 
+    return complete(design.DesignTagged(tag, start, num, ccOnly), start, num, 
                     u'tag/' + tag)
 
 @app.route(u'/tags')
@@ -191,49 +194,55 @@ def get_tags():
 
 
 
-@app.route(u'/popular/<int:start>/<int:num>')
-def get_popular(start, num):
+@app.route(u'/popular/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccpopular/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_popular(start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByPopularity(start, num), start, num, 
+    return complete(design.DesignByPopularity(start, num, ccOnly), start, num, 
                     u'popular')
 
 
-@app.route(u'/oldest/<int:start>/<int:num>')
-def get_oldest(start, num):
+@app.route(u'/oldest/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccoldest/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_oldest(start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByDate(True, start, num), start, num, 
+    return complete(design.DesignByDate(True, start, num, ccOnly), start, num, 
                     u'oldest')
 
-@app.route(u'/newest/<int:start>/<int:num>')
-def get_newest(start, num):
+@app.route(u'/newest/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccnewest/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_newest(start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByDate(False, start, num), start, num, 
+    return complete(design.DesignByDate(False, start, num, ccOnly), start, num, 
                     u'newest')
 
-@app.route(u'/title/<int:start>/<int:num>')
-def get_titles(start, num):
+@app.route(u'/title/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/cctitle/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_titles(start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
     
-    return complete(design.DesignByTitle(start, num), start, num, 
+    return complete(design.DesignByTitle(start, num, ccOnly), start, num, 
                     u'title')
 
-@app.route(u'/titleindex/<title>')
-def get_title_num(title):
-    return flask.json.jsonify({'index': design.CountByTitle(title), 'title': title})
+@app.route(u'/titleindex/<title>', defaults={'ccOnly': False})
+@app.route(u'/cctitleindex/<title>', defaults={'ccOnly': True})
+def get_title_num(title, ccOnly):
+    return flask.json.jsonify({'index': design.CountByTitle(title, ccOnly), 'title': title})
 
-@app.route(u'/random/<int:seed>/<int:start>/<int:num>')
-def get_random(seed, start, num):
+@app.route(u'/random/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_random(seed, start, num, ccOnly):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
-    return complete(design.DesignByRandom(seed, start, num), start, num, 
+    return complete(design.DesignByRandom(seed, start, num, ccOnly), start, num, 
                     u'random/' + str(seed))
 
 @app.route(u'/comments/<int:design_id>')

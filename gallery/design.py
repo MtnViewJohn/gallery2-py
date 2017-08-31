@@ -31,6 +31,7 @@ class Design:
                     u'd.imagelocation, d.thumblocation, d.sm_thumblocation, d.numvotes, '
                     u'UNIX_TIMESTAMP(d.whenuploaded) AS uploaddate, d.notes FROM '
                     u'gal_designs AS d ')
+    Query_CC = u'ccURI LIKE "%creativecommons.org%"'
 
     def init(self, **data):
         try:
@@ -447,68 +448,105 @@ def complete(cursor):
     return (cursor.rowcount, ret)
 
 
-def DesignByDesigner(name, start, num):
+def DesignByDesigner(name, start, num, ccOnly):
     if not gal_utils.legalOwner(name):
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
+    if ccOnly:
+        query = (Design.Query_base + u'WHERE owner=%s AND ' + Design.Query_CC +
+            u' ORDER BY whenuploaded DESC LIMIT %s,%s')
+    else:
+        query = (Design.Query_base + u'WHERE owner=%s ORDER BY whenuploaded ' 
+                 u'DESC LIMIT %s,%s')
+
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base + u'WHERE owner=%s ORDER BY whenuploaded ' 
-            u'DESC LIMIT %s,%s', (name,start,num))
+        cursor.execute(query, (name,start,num))
         return complete(cursor)
 
-def DesignByTitle(start, num):
+def DesignByTitle(start, num, ccOnly):
     db = gal_utils.get_db()
+    if ccOnly:
+        query = (Design.Query_base + u'WHERE ' + Design.Query_CC + 
+            u' ORDER BY title LIMIT %s,%s')
+    else:
+        query = Design.Query_base + u'ORDER BY title LIMIT %s,%s'
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base + u'ORDER BY title LIMIT %s,%s', (start,num))
+        cursor.execute(query, (start,num))
         return complete(cursor)
 
-def CountByTitle(title):
+def CountByTitle(title, ccOnly):
     if not isinstance(title, text) or len(title) == 0 or len(title) > 100:
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
+    if ccOnly:
+        query = (u'SELECT count(*) FROM gal_designs WHERE STRCMP(%s, title) > 0 AND ' +
+            Design.Query_CC)
+    else:
+        query = u'SELECT count(*) FROM gal_designs WHERE STRCMP(%s, title) > 0'
     with closing(db.cursor()) as cursor:
-        cursor.execute(u'SELECT count(*) FROM gal_designs WHERE STRCMP(%s, title) > 0', (title,))
+        cursor.execute(query, (title,))
         datum = cursor.fetchone()
         if datum is None or type(datum[0]) is not int:
             flask.abort(400,u'Bad request.')
 
         return datum[0]
 
-def DesignByRandom(seed, start, num):
+def DesignByRandom(seed, start, num, ccOnly):
     db = gal_utils.get_db()
+    if ccOnly:
+        query = (Design.Query_base + u'WHERE ' + Design.Query_CC + 
+            u' ORDER BY RAND(%s) LIMIT %s,%s')
+    else:
+        query = Design.Query_base + u'ORDER BY RAND(%s) LIMIT %s,%s'
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base + u'ORDER BY RAND(%s) LIMIT %s,%s', (seed,start,num))
+        cursor.execute(query, (seed,start,num))
         return complete(cursor)
 
-def DesignByDate(oldest, start, num):
+def DesignByDate(oldest, start, num, ccOnly):
     db = gal_utils.get_db()
-    query = Design.Query_base + (u'ORDER BY whenuploaded LIMIT %s,%s' if oldest
-                            else u'ORDER BY whenuploaded DESC LIMIT %s,%s')
+    if ccOnly:
+        query = (Design.Query_base + u'WHERE ' + Design.Query_CC +
+                        (u'ORDER BY whenuploaded LIMIT %s,%s' if oldest
+                    else u'ORDER BY whenuploaded DESC LIMIT %s,%s'))
+    else:
+        query = Design.Query_base + (u'ORDER BY whenuploaded LIMIT %s,%s' if oldest
+                                else u'ORDER BY whenuploaded DESC LIMIT %s,%s')
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def DesignFavorites(name, start, num):
+def DesignFavorites(name, start, num, ccOnly):
     if not gal_utils.legalOwner(name):
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
-    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base_d + ', gal_favorites AS f WHERE '
+    if ccOnly:
+        query = (Design.Query_base_d + ', gal_favorites AS f WHERE ' + Design.Query_CC +
+            ' AND f.screenname=%s AND f.designid = d.designid ORDER BY d.designid '
+            'DESC LIMIT %s,%s')
+    else:
+        query = (Design.Query_base_d + ', gal_favorites AS f WHERE '
             'f.screenname=%s AND f.designid = d.designid ORDER BY d.designid '
-            'DESC LIMIT %s,%s', (name,start,num))
-        return complete(cursor)
-
-def DesignByPopularity(start, num):
-    db = gal_utils.get_db()
+            'DESC LIMIT %s,%s')
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base + u'ORDER BY numvotes DESC, '
-            u'whenuploaded DESC LIMIT %s,%s', (start,num))
+        cursor.execute(query, (name,start,num))
         return complete(cursor)
 
-def DesignTagged(tag, start, num):
+def DesignByPopularity(start, num, ccOnly):
+    db = gal_utils.get_db()
+    if ccOnly:
+        query = (Design.Query_base + u'WHERE ' + Design.Query_CC + 
+            u' ORDER BY numvotes DESC, whenuploaded DESC LIMIT %s,%s')
+    else:
+        query = (Design.Query_base + u'ORDER BY numvotes DESC, '
+            u'whenuploaded DESC LIMIT %s,%s')
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(query, (start,num))
+        return complete(cursor)
+
+def DesignTagged(tag, start, num, ccOnly):
     db = gal_utils.get_db()
     with closing(db.cursor()) as cursor:
         cursor.execute(u'SELECT id FROM gal_tag_names WHERE name=%s', (tag,))
@@ -517,10 +555,16 @@ def DesignTagged(tag, start, num):
             flask.abort(400,u'Bad request.')
         tagid = datum[0]
 
-    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(Design.Query_base_d + ', gal_tags AS t WHERE '
+    if ccOnly:
+        query = (Design.Query_base_d + ', gal_tags AS t WHERE ' + Design.Query_CC +
+            ' AND t.tag=%s AND t.item = d.designid ORDER BY d.designid '
+            'DESC LIMIT %s,%s')
+    else:
+        query = (Design.Query_base_d + ', gal_tags AS t WHERE '
             't.tag=%s AND t.item = d.designid ORDER BY d.designid '
-            'DESC LIMIT %s,%s', (tagid,start,num))
+            'DESC LIMIT %s,%s')
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        cursor.execute(query, (tagid,start,num))
         return complete(cursor)
 
 def AllTags():
