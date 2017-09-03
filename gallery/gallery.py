@@ -11,6 +11,9 @@ import gal_utils
 from gal_utils import text
 from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
+from werkzeug.datastructures import FileStorage
+import io
+import base64
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -39,7 +42,11 @@ def get_design(design_id):
 @app.route(u'/postdesign', methods=[u'POST'])
 def put_design():
     try:
-        fdesign = dict(flask.request.form.iteritems())
+        if flask.request.is_json:
+            fdesign = flask.request.get_json()
+        else:
+            fdesign = dict(flask.request.form.iteritems())
+
         if not isinstance(fdesign, dict):
             return gal_utils.errorUrl(u'No data received.')
         if not current_user.is_authenticated:
@@ -57,8 +64,12 @@ def put_design():
                         flask.request.files[u'cfdgfile'].filename != u'')
         imagePresent = (u'imagefile' in flask.request.files and 
                         flask.request.files[u'imagefile'].filename != u'')
+        cfdgJson  = (flask.request.is_json and 'cfdgfile' in fdesign
+                     and fdesign['cfdgfile'] is not None)
+        imageJson = (flask.request.is_json and 'imagefile' in fdesign
+                     and fdesign['imagefile'] is not None)
 
-        if u'designid' in fdesign:
+        if u'designid' in fdesign and fdesign['designid'] != 0:
             design_id = fdesign['designid']
             if not isinstance(design_id, int) or design_id <= 0:
                 return gal_utils.errorUrl(u'Bad design id.')
@@ -71,7 +82,7 @@ def put_design():
             
             d.init(**fdesign)                   # Merge in changes from POST
         else:
-            if not (cfdgPresent and imagePresent):
+            if not ((cfdgPresent and imagePresent) or (cfdgJson and imageJson)):
                 return gal_utils.errorUrl(u'Upload missing cfdg or PNG file.')
             d = design.Design(**fdesign)        # Create new design from POST
 
@@ -84,17 +95,40 @@ def put_design():
                 upload.uploadcfdg(d, flask.request.files['cfdgfile'])
             if imagePresent:
                 upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
+            if cfdgJson:
+                cfdgtext = base64.standard_b64decode(fdesign['cfdgfile']['contents'])
+                cfdgfile = FileStorage(stream = io.BytesIO(cfdgtext), name = 'cfdgfile',
+                                        filename = fdesign['cfdgfile']['filename'])
+                upload.uploadcfdg(d, cfdgfile)
+            if imageJson:
+                pngdata = base64.standard_b64decode(fdesign['imagefile']['contents'])
+                pngfile = FileStorage(stream = io.BytesIO(pngdata), name = 'imagefile',
+                                        filename = fdesign['imagefile']['filename'])
+                upload.uploadpng(d, pngfile, jpeg)
             newurl = u'http://localhost:8000/main.html#design/' + text(id)
-            return flask.redirect(newurl, code=303)
+
+            if flask.request.is_json:
+                return flask.json.jsonify({'design': dict(d)})
+            else:
+                return flask.redirect(newurl, code=303)
         else:
-            return gal_utils.errorUrl(u'Failed to save design.')
+            if flask.request.is_json:
+                flask.abort(500, u'Failed to save design.')
+            else:
+                return gal_utils.errorUrl(u'Failed to save design.')
 
     except HTTPException as e:
         print e
-        return gal_utils.errorUrl(text(e))
+        if flask.request.is_json:
+            raise
+        else:
+            return gal_utils.errorUrl(text(e))
     except Exception as e:
         print e
-        return gal_utils.errorUrl(u'Unknown error occured.')
+        if flask.request.is_json:
+            raise
+        else:
+            return gal_utils.errorUrl(u'Unknown error occured.')
 
 @app.route(u'/delete/<int:design_id>', methods=[u'POST'])
 @login_required
