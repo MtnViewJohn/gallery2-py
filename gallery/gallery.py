@@ -299,7 +299,6 @@ def updateComment(comment_id):
 def createComment(design_id):
     newText = flask.request.data
     cmt = comment.CreateComment(design_id, newText)
-    print dict(cmt)
     return flask.json.jsonify(dict(cmt))
 
 @app.route(u'/deletecomment/<int:comment_id>', methods=[u'POST'])
@@ -359,7 +358,7 @@ def get_newbie():
     if u is None:
         return flask.json.jsonify({'userinfo': {}})
     else:
-        count, designs = design.DesignByDesigner(u.id, 0, 1)
+        count, designs = design.DesignByDesigner(u.id, 0, 1, False)
         if len(designs) > 0:
             return flask.json.jsonify({ 'design': dict(designs[0])})
         else:

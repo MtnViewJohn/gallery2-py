@@ -346,7 +346,6 @@ def DeleteDesign(design_id):
             return flask.abort(404, u'Cannot find design to delete.')
 
         design = Design(**cursor.fetchone())
-        print design
 
         if not gal_utils.validateOwner(design.owner):
             flask.abort(403, u'Unauthorized to delete this design.')
