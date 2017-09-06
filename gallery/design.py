@@ -12,6 +12,8 @@ import os.path
 
 S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
 
+This_dir = os.path.dirname(__file__)
+
 CC_names = {
     u'by':       u'Creative Commons Attribution 4.0 International',
     u'by-sa':    u'Creative Commons Attribution-ShareAlike 4.0 International',
@@ -416,10 +418,10 @@ def DesignbyID(design_id):
         design.normalize()
         
         try:
-            im = Image.open(design.imagelocation)
+            im = Image.open(os.path.join(This_dir, design.imagelocation))
             if im is not None:
                 width,height = im.size
-            design.imagesize = {'width': width, 'height': height}
+                design.imagesize = {'width': width, 'height': height}
         except:
             pass
 
@@ -436,10 +438,13 @@ def complete(cursor):
             design = Design(**row)
             design.normalize()
             if design.ready4display():
-                im = Image.open(design.thumblocation)
-                if im is not None:
-                    width,height = im.size
-                design.imagesize = {'width': width, 'height': height}
+                try:
+                    im = Image.open(os.path.join(This_dir, design.thumblocation))
+                    if im is not None:
+                        width,height = im.size
+                        design.imagesize = {'width': width, 'height': height}
+                except:
+                    pass
                 ret.append(design)
         except:
             pass
