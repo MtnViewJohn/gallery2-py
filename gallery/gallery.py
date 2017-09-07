@@ -60,6 +60,11 @@ def put_design():
 
         upload.formfix(fdesign)
 
+        if 'tags' in fdesign:
+            new_tags = fdesign['tags']
+        else:
+            new_tags = []
+
         cfdgPresent  = (u'cfdgfile' in flask.request.files and 
                         flask.request.files[u'cfdgfile'].filename != u'')
         imagePresent = (u'imagefile' in flask.request.files and 
@@ -74,6 +79,8 @@ def put_design():
             if not isinstance(design_id, int) or design_id <= 0:
                 return gal_utils.errorUrl(u'Bad design id.')
             d = design.DesignbyID(design_id)[0] # Get design from database
+            orig_tags = d.tags
+            orig_tagids = d.tagids
 
             if d is None:
                 return gal_utils.errorUrl(u'Design not found.')
@@ -84,12 +91,15 @@ def put_design():
         else:
             if not ((cfdgPresent and imagePresent) or (cfdgJson and imageJson)):
                 return gal_utils.errorUrl(u'Upload missing cfdg or PNG file.')
+            orig_tags = []
+            orig_tagids = []
             d = design.Design(**fdesign)        # Create new design from POST
 
         d.normalize()
         id = d.save()
 
         if id is not None:
+            design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
             jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
             if cfdgPresent:
                 upload.uploadcfdg(d, flask.request.files['cfdgfile'])

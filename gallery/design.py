@@ -393,19 +393,20 @@ def DesignbyID(design_id):
         if not design.ready4display():
             return None
 
-        cursor.execute(u'SELECT n.name FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
+        design.tags = []
+        design.tagids = []
+        cursor.execute(u'SELECT n.name, n.id FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
             u'AND t.tag=n.id', (design_id,))
         if cursor.rowcount > 0:
-            design.tags = []
             rows = cursor.fetchall()
             for row in rows:
                 design.tags.append(row['name'])
+                design.tagids.append(row['id'])
 
-        cursor.execute(u'SELECT name FROM gal_tag_names WHERE count>0 ORDER BY name')
-        allTags = []
-        tags = cursor.fetchall()
-        for tag in tags:
-            allTags.append(tag['name'])
+        cursor.execute(u'SELECT name, count FROM gal_tag_names WHERE count>0 ORDER BY name')
+        allTags = cursor.fetchall()
+        if allTags is None:
+            allTags = []
 
         cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
             u'ORDER BY screenname', (design_id,))
@@ -630,10 +631,50 @@ def DeleteFave(design_id):
         return ret
 
 
+def AddTags(tagnames, design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        for tagname in tagnames:
+            cursor.execute(u'INSERT INTO gal_tag_names (name,count) VALUES (%s,1) '
+                u'ON DUPLICATE KEY UPDATE count=count+1', (tagname,))
+
+            tagid = cursor.lastrowid
+            if tagid == 0:
+                flask.abort(500, u'Failed to add tag:' + tagname)
+
+            cursor.execute(u'INSERT into gal_tags (item,tag,user,type) VALUES (%s,%s,"","")',
+                (design_id, tagid))
+            if cursor.lastrowid == 0:
+                flask.abort(500, u'Failed to add tag:' + tagname)
 
 
 
+def DeleteTags(tagids, design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        for tagid in tagids:
+            cursor.execute(u'DELETE FROM gal_tags WHERE item=%s AND tag=%s',
+                (design_id, tagid))
 
+            if cursor.rowcount > 0:
+                cursor.execute(u'UPDATE gal_tag_names SET count=count-1 '
+                    u'WHERE id=%s AND count>0')
+
+def UpdateTags(design_id, oldtagnames, oldtagids, newtagnames):
+    deleted = []
+    for tagid, tagname in zip(oldtagids, oldtagnames):
+        if tagname not in newtagnames:
+            deleted.append(tagid)
+
+    added = []
+    for newtag in newtagnames:
+        if newtag not in oldtagnames:
+            added.append(newtag)
+
+    if len(deleted) > 0:
+        DeleteTags(deleted, design_id)
+    if len(added) > 0:
+        AddTags(added, design_id)
 
 
 
