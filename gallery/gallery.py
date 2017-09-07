@@ -17,7 +17,8 @@ import base64
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
-CORS(app, supports_credentials=True)
+if app.debug:
+    CORS(app, supports_credentials=True)
 
 @app.teardown_appcontext
 def close_db(error):
