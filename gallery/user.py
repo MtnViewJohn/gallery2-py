@@ -181,22 +181,25 @@ def complete(cursor):
     return (cursor.rowcount, ret)
 
 
-def UsersByName(start, num):
-    query = MiniUser.Query_base + u'ORDER BY screenname LIMIT %s,%s'
+def UsersByName(ascending, start, num):
+    direction = u'ASC' if ascending else 'DESC'
+    query = MiniUser.Query_base + u'ORDER BY screenname ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor()) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def UsersByJoindate(start, num):
-    query = MiniUser.Query_base + u'ORDER BY joinedon LIMIT %s,%s'
+def UsersByJoindate(ascending, start, num):
+    direction = u'ASC' if ascending else 'DESC'
+    query = MiniUser.Query_base + u'ORDER BY joinedon ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor()) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def UsersByPosts(start, num):
-    query = MiniUser.Query_base + u'ORDER BY numposts DESC, screenname LIMIT %s,%s'
+def UsersByPosts(ascending, start, num):
+    direction = u'ASC' if ascending else 'DESC'
+    query = MiniUser.Query_base + u'ORDER BY numposts ' + direction + u', screenname LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor()) as cursor:
         cursor.execute(query, (start,num))

@@ -419,21 +419,42 @@ def usersByName(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByName(start,num), start, num, u'users/name')
+    return ucomplete(user.UsersByName(True,start,num), start, num, u'users/name')
 
 @app.route(u'/users/joined/<int:start>/<int:num>')
 def usersByJoindate(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByJoindate(start,num), start, num, u'users/joined')
+    return ucomplete(user.UsersByJoindate(True,start,num), start, num, u'users/joined')
 
 @app.route(u'/users/posts/<int:start>/<int:num>')
 def usersByPosts(start, num):
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByPosts(start,num), start, num, u'users/posts')
+    return ucomplete(user.UsersByPosts(True,start,num), start, num, u'users/posts')
+
+@app.route(u'/users/name_d/<int:start>/<int:num>')
+def usersByNameDesc(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByName(False,start,num), start, num, u'users/name_d')
+
+@app.route(u'/users/joined_d/<int:start>/<int:num>')
+def usersByJoindateDesc(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByJoindate(False,start,num), start, num, u'users/joined_d')
+
+@app.route(u'/users/posts_d/<int:start>/<int:num>')
+def usersByPostsDesc(start, num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad user count')
+
+    return ucomplete(user.UsersByPosts(False,start,num), start, num, u'users/posts_d')
 
 
 
