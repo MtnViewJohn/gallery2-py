@@ -658,7 +658,7 @@ def DeleteTags(tagids, design_id):
 
             if cursor.rowcount > 0:
                 cursor.execute(u'UPDATE gal_tag_names SET count=count-1 '
-                    u'WHERE id=%s AND count>0')
+                    u'WHERE id=%s AND count>0', (tagid,))
 
 def UpdateTags(design_id, oldtagnames, oldtagids, newtagnames):
     deleted = []
