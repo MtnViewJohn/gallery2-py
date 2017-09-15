@@ -76,7 +76,7 @@ def uploadcfdg(design, file):
             except OSError:
                 pass
 
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(u'UPDATE gal_designs SET filelocation=%s, '
                        u'whenuploaded=NOW() WHERE designid=%s', 
                        (cfdgpath,design.designid))

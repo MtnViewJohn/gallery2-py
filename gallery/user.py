@@ -185,7 +185,7 @@ def UsersByName(ascending, start, num):
     direction = u'ASC' if ascending else 'DESC'
     query = MiniUser.Query_base + u'ORDER BY screenname ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
@@ -193,7 +193,7 @@ def UsersByJoindate(ascending, start, num):
     direction = u'ASC' if ascending else 'DESC'
     query = MiniUser.Query_base + u'ORDER BY joinedon ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
@@ -201,7 +201,7 @@ def UsersByPosts(ascending, start, num):
     direction = u'ASC' if ascending else 'DESC'
     query = MiniUser.Query_base + u'ORDER BY numposts ' + direction + u', screenname LIMIT %s,%s'
     db = gal_utils.get_db()
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 

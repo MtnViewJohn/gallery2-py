@@ -490,7 +490,7 @@ def CountByTitle(title, ccOnly):
             Design.Query_CC)
     else:
         query = u'SELECT count(*) FROM gal_designs WHERE STRCMP(%s, title) > 0'
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (title,))
         datum = cursor.fetchone()
         if datum is None or type(datum[0]) is not int:
@@ -553,7 +553,7 @@ def DesignByPopularity(start, num, ccOnly):
 
 def DesignTagged(tag, start, num, ccOnly):
     db = gal_utils.get_db()
-    with closing(db.cursor()) as cursor:
+    with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(u'SELECT id FROM gal_tag_names WHERE name=%s', (tag,))
         datum = cursor.fetchone()
         if datum is None or type(datum[0]) is not int:
