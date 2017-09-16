@@ -543,9 +543,9 @@ def DesignByPopularity(start, num, ccOnly):
     db = gal_utils.get_db()
     if ccOnly:
         query = (Design.Query_base + u'WHERE ' + Design.Query_CC + 
-            u' ORDER BY numvotes DESC, whenuploaded DESC LIMIT %s,%s')
+            u' AND numvotes>0 ORDER BY numvotes DESC, whenuploaded DESC LIMIT %s,%s')
     else:
-        query = (Design.Query_base + u'ORDER BY numvotes DESC, '
+        query = (Design.Query_base + u'WHERE numvotes>0 ORDER BY numvotes DESC, '
             u'whenuploaded DESC LIMIT %s,%s')
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(query, (start,num))
