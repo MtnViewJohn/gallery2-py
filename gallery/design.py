@@ -183,7 +183,8 @@ class Design:
         yield 'thumblocation', self.imageHelper(self.thumblocation)
         yield 'smthumblocation', self.imageHelper(self.sm_thumblocation)
         yield 'numvotes', self.numvotes
-        yield 'notes', gal_utils.translate2Markdown(self.notes)
+        yield 'notes', self.notes
+        yield 'notesmd', gal_utils.translate2Markdown(self.notes)
         yield 'ccURI', self.ccURI
         yield 'ccName', self.ccName
         yield 'ccImage', self.ccImage
