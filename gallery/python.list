@@ -4,4 +4,4 @@ flask-cors
 Pillow
 passlib
 bcrypt
-
+mysql-connector
