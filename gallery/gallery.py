@@ -159,13 +159,18 @@ def get_data(dtype, design_id):
     if mydesign is None:
         flask.abort(404,u'Design not found')
 
+    if app.debug:
+        serverurl = u''
+    else:
+        serverurl = flask.request.url_root.rstrip('/').rstrip('abcdefghijklmnopqrstuvwxyz')
+
     if dtype == u'cfdg':
-        newurl = mydesign.filelocation.replace(u'//', u'/')
+        newurl = serverurl + mydesign.filelocation.replace(u'//', u'/')
         if mydesign.variation:
             newurl += u'?variation=' + mydesign.variation
         return flask.redirect(newurl)
 
-    prefix = design.S3_dir if mydesign.S3 else u''
+    prefix = design.S3_dir if mydesign.S3 else serverurl
 
     if dtype == u'full':
         newurl = prefix + mydesign.imagelocation
@@ -178,7 +183,9 @@ def get_data(dtype, design_id):
             newurl = mydesign.ccURI
         else:
             flask.abort(404,u'No CC license')
-    if not mydesign.S3:     # S3 requires verbatim url but flask chokes on //
+
+    # S3 requires verbatim url but flask chokes on //
+    if not newurl.startswith(u'http'):
         newurl = newurl.replace(u'//', u'/')
     return flask.redirect(newurl)
 
