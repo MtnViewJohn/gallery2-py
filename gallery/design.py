@@ -404,11 +404,6 @@ def DesignbyID(design_id):
                 design.tags.append(row['name'])
                 design.tagids.append(row['id'])
 
-        cursor.execute(u'SELECT name, count FROM gal_tag_names WHERE count>0 ORDER BY name')
-        allTags = cursor.fetchall()
-        if allTags is None:
-            allTags = []
-
         cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
             u'ORDER BY screenname', (design_id,))
         if cursor.rowcount > 0:
@@ -427,7 +422,7 @@ def DesignbyID(design_id):
         except:
             pass
 
-        return (design, allTags)
+        return design
 
 def complete(cursor):
     if cursor.rowcount == 0: return (0, [])

@@ -34,11 +34,11 @@ def load_user(user_id):
 
 @app.route(u'/design/<int:design_id>', methods=[u'GET'])
 def get_design(design_id):
-    mydesign, tags = design.DesignbyID(design_id)
+    mydesign = design.DesignbyID(design_id)
     if mydesign is None:
         return flask.json.jsonify({ 'error': u'Could not find design'})
     else:
-        return flask.json.jsonify({ 'design': dict(mydesign), 'tags': tags})
+        return flask.json.jsonify({ 'design': dict(mydesign)})
 
 @app.route(u'/postdesign', methods=[u'POST'])
 def put_design():
@@ -79,7 +79,7 @@ def put_design():
             design_id = fdesign['designid']
             if not isinstance(design_id, int) or design_id <= 0:
                 return gal_utils.errorUrl(u'Bad design id.')
-            d = design.DesignbyID(design_id)[0] # Get design from database
+            d = design.DesignbyID(design_id) # Get design from database
             orig_tags = d.tags
             orig_tagids = d.tagids
 
@@ -119,7 +119,7 @@ def put_design():
             newurl = u'http://localhost:8000/main.html#design/' + text(id)
 
             if flask.request.is_json:
-                return flask.json.jsonify({'design': dict(d)})
+                return flask.json.jsonify({'design': dict(d), 'tags': design.AllTags()})
             else:
                 return flask.redirect(newurl, code=303)
         else:
@@ -155,7 +155,7 @@ def get_data(dtype, design_id):
     if dtype not in [u'cfdg', u'full', u'thumb', u'smallthumb', u'cclicense']:
         flask.abort(400,u'Bad data type')
 
-    mydesign = design.DesignbyID(design_id)[0]
+    mydesign = design.DesignbyID(design_id)
     if mydesign is None:
         flask.abort(404,u'Design not found')
 
