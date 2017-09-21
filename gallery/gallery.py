@@ -297,6 +297,12 @@ def get_random(seed, start, num, ccOnly):
     return complete(design.DesignByRandom(seed, start, num, ccOnly), start, num, 
                     u'random/' + str(seed))
 
+@app.route(u'/fans/<int:design_id>')
+def getFans(design_id):
+    fans = design.GetFans(design_id)
+    return flask.json.jsonify({'fans': fans})
+
+
 @app.route(u'/comments/<int:design_id>')
 def get_comments(design_id):
     comments = comment.CommentsByDesign(design_id)

@@ -404,13 +404,9 @@ def DesignbyID(design_id):
                 design.tags.append(row['name'])
                 design.tagids.append(row['id'])
 
-        cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
-            u'ORDER BY screenname', (design_id,))
-        if cursor.rowcount > 0:
-            design.fans = []
-            rows = cursor.fetchall()
-            for row in rows:
-                design.fans.append(row['screenname'])
+        fans = GetFans(design_id)
+        if len(fans) > 0:
+            design.fans = fans
 
         design.normalize()
         
@@ -576,6 +572,17 @@ def AllTags():
         if data is None:
             flask.abort(500,u'Failed to get tags')
         return data
+
+def GetFans(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
+            u'ORDER BY screenname', (design_id,))
+        fans = []
+        rows = cursor.fetchall()
+        for row in rows:
+            fans.append(row[0])
+        return fans
 
 def AddFave(design_id):
     db = gal_utils.get_db()
