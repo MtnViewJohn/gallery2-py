@@ -348,17 +348,27 @@ def deleteFave(design_id):
     newfaves = design.DeleteFave(design_id)
     return flask.json.jsonify({'designid': design_id, 'faves': newfaves})
 
-@app.route(u'/login/<username>/<password>/<int:rememberme>', methods=[u'POST'])
-def gal_login(username, password, rememberme):
+@app.route(u'/login', methods=[u'POST'])
+def gal_login():
+    formdata = dict(flask.request.form.iteritems())
+    print formdata
+    if 'username' not in formdata or len(formdata['username']) == 0:
+        return gal_utils.errorUrl(u'Username required.')
+    if 'password' not in formdata or len(formdata['password']) == 0:
+        return gal_utils.errorUrl(u'Password required.')
+    username = formdata['username']
+    password = formdata['password']
+    rememberme = 'rememberme' in formdata and formdata['rememberme'] == u'on'
+
     newuser = user.canLogin(username, password)
     if newuser is not None:
         newuser.lastlogin = int(time.time())
         newuser.numlogins += 1
         newuser.save(True)
-        login_user(newuser, remember=(rememberme != 0))
-        return flask.json.jsonify({'userinfo': dict(newuser)})
+        login_user(newuser, remember=rememberme)
+        return gal_utils.loginUrl()
 
-    return flask.json.jsonify({'userinfo': {}})
+    return gal_utils.errorUrl(u'Username/password not valid.')
 
 @app.route(u'/logout', methods=[u'POST'])
 @login_required
