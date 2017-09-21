@@ -146,14 +146,14 @@ def errorUrl(msg):
     if flask.current_app.debug:
         url = u'http://localhost:8000/main.html#error/' + encodeFragment(msg)
     else:
-        url = u'../main.html#error/' + encodeFragment(msg)
+        url = u'../../gallery2/index.html#error/' + encodeFragment(msg)
     return flask.redirect(url, code = 303)
 
 def loginUrl():
     if flask.current_app.debug:
         url = u'http://localhost:8000/main.html#newest/0'
     else:
-        url = u'../main.html#newest/0/'
+        url = u'../../gallery2/index.html#newest/0/'
     return flask.redirect(url, code = 303)
 
 
