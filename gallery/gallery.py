@@ -297,10 +297,15 @@ def get_random(seed, start, num, ccOnly):
     return complete(design.DesignByRandom(seed, start, num, ccOnly), start, num, 
                     u'random/' + str(seed))
 
-@app.route(u'/fans/<int:design_id>')
+@app.route(u'/auxinfo/<int:design_id>')
 def getFans(design_id):
     fans = design.GetFans(design_id)
-    return flask.json.jsonify({'fans': fans})
+    tags, ids = design.GetTags(design_id)
+    sz = design.GetSize(design_id)
+    if sz is None:
+        return flask.json.jsonify({'fans': fans, 'tags': tags})
+    else:
+        return flask.json.jsonify({'fans': fans, 'tags': tags, 'imagesize': sz})
 
 
 @app.route(u'/comments/<int:design_id>')

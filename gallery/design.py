@@ -394,15 +394,7 @@ def DesignbyID(design_id):
         if not design.ready4display():
             return None
 
-        design.tags = []
-        design.tagids = []
-        cursor.execute(u'SELECT n.name, n.id FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
-            u'AND t.tag=n.id', (design_id,))
-        if cursor.rowcount > 0:
-            rows = cursor.fetchall()
-            for row in rows:
-                design.tags.append(row['name'])
-                design.tagids.append(row['id'])
+        design.tags, design.tagids = GetTags(design_id)
 
         fans = GetFans(design_id)
         if len(fans) > 0:
@@ -410,13 +402,9 @@ def DesignbyID(design_id):
 
         design.normalize()
         
-        try:
-            im = Image.open(os.path.join(This_dir, design.imagelocation))
-            if im is not None:
-                width,height = im.size
-                design.imagesize = {'width': width, 'height': height}
-        except:
-            pass
+        sz = GetSize(design.imagelocation)
+        if sz is not None:
+            design.imagesize = sz;
 
         return design
 
@@ -431,13 +419,9 @@ def complete(cursor):
             design = Design(**row)
             design.normalize()
             if design.ready4display():
-                try:
-                    im = Image.open(os.path.join(This_dir, design.thumblocation))
-                    if im is not None:
-                        width,height = im.size
-                        design.imagesize = {'width': width, 'height': height}
-                except:
-                    pass
+                sz = GetSize(design.thumblocation)
+                if sz is not None:
+                    design.imagesize = sz;
                 ret.append(design)
         except:
             pass
@@ -583,6 +567,39 @@ def GetFans(design_id):
         for row in rows:
             fans.append(row[0])
         return fans
+
+def GetTags(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        tags = []
+        tagids = []
+        cursor.execute(u'SELECT n.name, n.id FROM gal_tags AS t, gal_tag_names AS n WHERE t.item=%s '
+            u'AND t.tag=n.id', (design_id,))
+        if cursor.rowcount > 0:
+            rows = cursor.fetchall()
+            for row in rows:
+                tags.append(row[0])
+                tagids.append(row[1])
+        return (tags, tagids)
+
+def GetSize(path):
+    if isinstance(path, int):
+        db = gal_utils.get_db()
+        with closing(db.cursor(buffered=True)) as cursor:
+            cursor.execute(u'SELECT imagelocation FROM gal_designs WHERE designid=%s',
+                (path,))
+            if cursor.rowcount != 1:
+                return None
+            path = cursor.fetchone()[0]
+
+    try:
+        im = Image.open(os.path.join(This_dir, path))
+        if im is not None:
+            width,height = im.size
+            return {'width': width, 'height': height}
+    except:
+        return None
+
 
 def AddFave(design_id):
     db = gal_utils.get_db()
