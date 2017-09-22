@@ -351,7 +351,6 @@ def deleteFave(design_id):
 @app.route(u'/login', methods=[u'POST'])
 def gal_login():
     formdata = dict(flask.request.form.iteritems())
-    print formdata
     if 'username' not in formdata or len(formdata['username']) == 0:
         return gal_utils.errorUrl(u'Username required.')
     if 'password' not in formdata or len(formdata['password']) == 0:
