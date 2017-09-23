@@ -38,7 +38,7 @@ def get_design(design_id):
     if mydesign is None:
         return flask.json.jsonify({ 'error': u'Could not find design'})
     else:
-        time.sleep(5)
+        #time.sleep(5)
         return flask.json.jsonify({ 'design': dict(mydesign)})
 
 @app.route(u'/postdesign', methods=[u'POST'])
@@ -209,7 +209,7 @@ def complete(designs, start, num, qpath):
         'thislink': u'/'.join([qpath, str(start)]),
         'designs': jdesigns
     }
-    time.sleep(5)
+    #time.sleep(5)
     return flask.json.jsonify(payload)
 
 @app.route(u'/by/<name>/<int:start>/<int:num>', defaults={'ccOnly': False})
