@@ -351,7 +351,7 @@ def DeleteDesign(design_id):
         design = Design(**cursor.fetchone())
 
         if not gal_utils.validateOwner(design.owner):
-            flask.abort(403, u'Unauthorized to delete this design.')
+            flask.abort(401, u'Unauthorized to delete this design.')
 
         # TODO update tag counts
 
