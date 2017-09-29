@@ -111,7 +111,7 @@ def put_design():
                 cfdgtext = base64.standard_b64decode(fdesign['cfdgfile']['contents'])
                 cfdgfile = FileStorage(stream = io.BytesIO(cfdgtext), name = 'cfdgfile',
                                         filename = fdesign['cfdgfile']['filename'])
-                upload.uploadcfdg(d, cfdgfile)
+                upload.uploadcfdg(d, cfdgfile, fdesign['cfdgfile']['filename'])
             if imageJson:
                 pngdata = base64.standard_b64decode(fdesign['imagefile']['contents'])
                 pngfile = FileStorage(stream = io.BytesIO(pngdata), name = 'imagefile',

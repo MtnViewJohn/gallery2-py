@@ -44,11 +44,11 @@ def makeFilePath(basedir, owner):
         flask.abort(500,u'Cannot create directory: ' + path)
 
 
-def uploadcfdg(design, file):
+def uploadcfdg(design, file, name):
     db = gal_utils.get_db()
     oldcfdg = design.filelocation
 
-    name = secure_filename(file.filename)
+    name = secure_filename(name)
 
     if u'.' not in name or name.rsplit('.', 1)[1].lower() != u'cfdg':
         name = u'design.cfdg'
