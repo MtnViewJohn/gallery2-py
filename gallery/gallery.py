@@ -42,22 +42,34 @@ def get_design(design_id):
         return flask.json.jsonify({ 'design': dict(mydesign)})
 
 @app.route(u'/postdesign', methods=[u'POST'])
-def put_design():
-    try:
-        if flask.request.is_json:
-            fdesign = flask.request.get_json()
-        else:
-            fdesign = dict(flask.request.form.iteritems())
+def jpost_design():
+    jdesign = flask.request.get_json()
+    newdesign = put_design(jdesign)
+    return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
 
+@app.route(u'/fpostdesign', methods=[u'POST'])
+def fpost_design():
+    try:
+        fdesign = dict(flask.request.form.iteritems())
+        newdesign = put_design(fdesign)
+        return flask.redirect(newdesign[0], code=303)
+    except HTTPException as e:
+        print e
+        return gal_utils.errorUrl(text(e))
+    except Exception as e:
+        print e
+        return gal_utils.errorUrl(u'Unknown error occured.')
+
+def put_design(fdesign):
         if not isinstance(fdesign, dict):
-            return gal_utils.errorUrl(u'No data received.')
+            flask.abort(400, u'No data received.')
         if not current_user.is_authenticated:
             if u'screenname' not in fdesign or u'password' not in fdesign:
-                return gal_utils.errorUrl(u'Not logged in/no user credentils provided.')
+                flask.abort(401, u'Not logged in/no user credentils provided.')
             
             newuser = user.canLogin(fdesign['screenname'], fdesign['password'])
             if newuser is None:
-                return gal_utils.errorUrl(u'Incorrect login credentials.')
+                flask.abort(401, u'Incorrect login credentials.')
             login_user(newuser, remember=False)
 
         upload.formfix(fdesign)
@@ -79,20 +91,20 @@ def put_design():
         if u'designid' in fdesign and fdesign['designid'] != 0:
             design_id = fdesign['designid']
             if not isinstance(design_id, int) or design_id <= 0:
-                return gal_utils.errorUrl(u'Bad design id.')
+                flask.abort(400, u'Bad design id.')
             d = design.DesignbyID(design_id) # Get design from database
             orig_tags = d.tags
             orig_tagids = d.tagids
 
             if d is None:
-                return gal_utils.errorUrl(u'Design not found.')
+                flask.abort(404, u'Design not found.')
             if not gal_utils.validateOwner(d.owner):
-                return gal_utils.errorUrl(u'Unauthorized to edit this design.')
+                flask.abort(401, u'Unauthorized to edit this design.')
             
             d.init(**fdesign)                   # Merge in changes from POST
         else:
             if not ((cfdgPresent and imagePresent) or (cfdgJson and imageJson)):
-                return gal_utils.errorUrl(u'Upload missing cfdg or PNG file.')
+                flask.abort(400, u'Upload missing cfdg or PNG file.')
             orig_tags = []
             orig_tagids = []
             d = design.Design(**fdesign)        # Create new design from POST
@@ -119,28 +131,10 @@ def put_design():
                 upload.uploadpng(d, pngfile, jpeg)
             newurl = u'http://localhost:8000/main.html#design/' + text(id)
 
-            if flask.request.is_json:
-                return flask.json.jsonify({'design': dict(d), 'tags': design.AllTags()})
-            else:
-                return flask.redirect(newurl, code=303)
+            return (newurl, d)
         else:
-            if flask.request.is_json:
-                flask.abort(500, u'Failed to save design.')
-            else:
-                return gal_utils.errorUrl(u'Failed to save design.')
+            flask.abort(500, u'Failed to save design.')
 
-    except HTTPException as e:
-        print e
-        if flask.request.is_json:
-            raise
-        else:
-            return gal_utils.errorUrl(text(e))
-    except Exception as e:
-        print e
-        if flask.request.is_json:
-            raise
-        else:
-            return gal_utils.errorUrl(u'Unknown error occured.')
 
 @app.route(u'/delete/<int:design_id>', methods=[u'POST'])
 @login_required
