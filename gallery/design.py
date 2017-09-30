@@ -79,7 +79,8 @@ class Design:
                     self.ccURI = u''
                     self.ccName = u''
                     self.ccImage = u'No license chosen'
-            elif 'cclicense' in data and isinstance(data['cclicense'], text):
+
+            if 'cclicense' in data and isinstance(data['cclicense'], text):
                 if data['cclicense'] == u'zero':
                     self.ccURI = u'https://creativecommons.org/publicdomain/zero/1.0/'
                     self.ccName = u'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
