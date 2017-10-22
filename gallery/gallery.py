@@ -14,6 +14,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.datastructures import FileStorage
 import io
 import base64
+import translate
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -301,6 +302,42 @@ def getFans(design_id):
         return flask.json.jsonify({'fans': fans, 'tags': tags})
     else:
         return flask.json.jsonify({'fans': fans, 'tags': tags, 'imagesize': sz})
+
+def completexlate(cfdg2txt):
+    try:
+        with closing(translate.Translator(cfdg2txt)) as cfdgxlate:
+            cfdgxlate.translate()
+            return flask.json.jsonify({ u'cfdg3txt': cfdgxlate.output.getvalue(), 
+                                        u'colortarget': cfdgxlate.colortarget,
+                                        u'discards' : cfdgxlate.extraChars})
+    except Exception as e:
+        flask.abort(400, text(e))
+
+@app.route(u'/translate/<int:design_id>')
+def translateDesign(design_id):
+    if design_id <= 0:
+        flask.abort(400,u'Bad design id')
+
+    mydesign = design.DesignbyID(design_id)
+    if mydesign is None:
+        flask.abort(404,u'Design not found')
+    #else:
+    try:
+        with open(mydesign.filelocation, mode = u'rb') as myfile:
+            cfdg2txt = myfile.read().decode(u'utf-8')
+    except Exception:
+        flask.abort(500, u'Failed to load cfdg file.')
+    return completexlate(cfdg2txt)
+
+
+
+@app.route(u'/translate', methods = [u'POST'])
+def translateCfdg2():
+    try:
+        cfdg2txt = flask.request.data.decode(u'utf-8')
+    except Exception as e:
+        flask.abort(400, u'Unicode error.')
+    return completexlate(cfdg2txt)
 
 
 @app.route(u'/comments/<int:design_id>')
