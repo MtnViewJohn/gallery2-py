@@ -13,6 +13,8 @@ from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 from werkzeug.datastructures import FileStorage
 import io
+import os
+import os.path
 import base64
 import translate
 
@@ -323,7 +325,8 @@ def translateDesign(design_id):
         flask.abort(404,u'Design not found')
     #else:
     try:
-        with open(mydesign.filelocation, mode = u'rb') as myfile:
+        fullpath = os.path.join(app.root_path, mydesign.filelocation)
+        with open(fullpath, mode = u'rb') as myfile:
             cfdg2txt = myfile.read().decode(u'utf-8')
     except Exception:
         flask.abort(500, u'Failed to load cfdg file.')
