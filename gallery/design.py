@@ -374,7 +374,18 @@ def DeleteDesign(design_id):
                     pass
 
 
+def NewerDesigns(design_id):
+    if design_id == 0:
+        return 0
+    db = gal_utils.get_db()
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(u'SELECT count(*) FROM gal_designs WHERE designid > %s',
+                        (design_id,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
 
+        return datum[0]
 
 
 def DesignbyID(design_id):

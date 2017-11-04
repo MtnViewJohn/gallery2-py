@@ -392,6 +392,7 @@ def gal_login(username, password, rememberme):
         newuser.numlogins += 1
         newuser.save(True)
         login_user(newuser, remember=(rememberme != 0))
+        newuser.unseen = design.NewerDesigns(newuser.lastdesign)
         return flask.json.jsonify({'userinfo': dict(newuser)})
 
     return flask.json.jsonify({'userinfo': {}})
@@ -415,7 +416,20 @@ def gal_userinfo(username):
     if u is None:
         return flask.json.jsonify({'userinfo': {}})
     else:
+        u.unseen = design.NewerDesigns(u.lastdesign)
         return flask.json.jsonify({'userinfo': dict(u)})
+
+@app.route(u'/newdesigns', methods=[u'POST'])
+@login_required
+def newdesigns():
+    u = current_user
+    count, designs = design.DesignByDate(False, 0, 1, False)
+    if count != 1 or len(designs) != 1:
+        return flask.json.jsonify({'newdesigns': 0})
+    else:
+        u.lastdesign = designs[0].designid
+        u.save()
+        return flask.json.jsonify({'newdesigns': 1})
 
 @app.route(u'/newbie')
 def get_newbie():

@@ -51,21 +51,22 @@ def get(username):
             user.email = data[2]
 
         cursor.execute(u'SELECT UNIX_TIMESTAMP(lastlogin), UNIX_TIMESTAMP(joinedon), '
-                       u'numposts, numlogins, notify_of_comments, ccURI '
+                       u'numposts, numlogins, lastdesign, notify_of_comments, ccURI '
                        u'FROM gal_users WHERE screenname=%s', (username,))
         data = cursor.fetchone()
-        if data is None or len(data) < 6 or not isinstance(data[0], int) or \
+        if data is None or len(data) < 7 or not isinstance(data[0], int) or \
                 not isinstance(data[1], int) or not isinstance(data[2], int) or \
                 not isinstance(data[3], int) or not isinstance(data[4], int) or \
-                not isinstance(data[5], text):
+                not isinstance(data[5], int) or not isinstance(data[6], text):
             return user
 
         user.lastlogin = data[0]
         user.joinedon = data[1]
         user.numposts = data[2]
         user.numlogins = data[3]
-        user.notify = data[4] != 0
-        user.ccURI = data[5]
+        user.lastdesign = data[4]
+        user.notify = data[5] != 0
+        user.ccURI = data[6]
         user.inGalUsers = True
 
         return user
@@ -82,6 +83,7 @@ class User(UserMixin):
         self.joinedon = int(time.time())
         self.numposts = 0
         self.numlogins = 0
+        self.lastdesign = 0
         self.notify = False
         self.ccURI = u''
         self.inGalUsers = False
@@ -94,8 +96,11 @@ class User(UserMixin):
         yield 'joinedon', self.joinedon
         yield 'numposts', self.numposts
         yield 'numlogins', self.numlogins
+        yield 'lastdesign', self.lastdesign
         yield 'notify', self.notify
         yield 'ccURI', self.ccURI
+        if hasattr(self, 'unseen'):
+            yield 'unseen', self.unseen
 
     def save(self, newLogin=False):
         db = gal_utils.get_db()
@@ -103,18 +108,19 @@ class User(UserMixin):
             if self.inGalUsers:
                 lastlogin = u'lastlogin=NOW(), ' if newLogin else u''
                 cursor.execute(u'UPDATE gal_users SET ' + lastlogin +
-                               u'numposts=%s, numlogins=%s, notify_of_comments=%s, '
+                               u'numposts=%s, numlogins=%s, lastdesign=%s, '
+                               u'notify_of_comments=%s, '
                                u'ccURI=%s WHERE screenname=%s',
-                               (self.numposts,self.numlogins,
+                               (self.numposts,self.numlogins,self.lastdesign,
                                 self.notify,self.ccURI,self.id))
             else:
                 cursor.execute(u'INSERT INTO gal_users (screenname, email, '
                                u'lastlogin, joinedon, numposts, numlogins, '
-                               u'notify_of_comments, ccURI) VALUES'
+                               u'lastdesign, notify_of_comments, ccURI) VALUES'
                                u'(%s,%s,NOW(),NOW(),%s,%s,%s,%s)',
                                (self.id,self.email,self.numposts,
-                                self.numlogins,1 if self.notify else 0,
-                                self.ccURI))
+                                self.numlogins,self.lastdesign,
+                                1 if self.notify else 0,self.ccURI))
                 if cursor.rowcount == 1:
                     self.inGalUsers = True
 
@@ -126,14 +132,14 @@ def Newbie():
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(u'SELECT screenname, email, UNIX_TIMESTAMP(lastlogin), '
                        u'UNIX_TIMESTAMP(joinedon), '
-                       u'numposts, numlogins, notify_of_comments, ccURI '
+                       u'numposts, numlogins, lastdesign, notify_of_comments, ccURI '
                        u'FROM gal_users WHERE numposts >= 1 '
                        u'ORDER BY joinedon DESC LIMIT 1')
         data = cursor.fetchone()
         if (data is None or not isinstance(data[0], text) or 
                 not isinstance(data[1], text) or not isinstance(data[4], int) or
                 not isinstance(data[5], int) or not isinstance(data[6], int) or
-                not isinstance(data[7], text)):
+                not isinstance(data[7], int) or not isinstance(data[8], text)):
             return None
 
         user = User(data[0])
@@ -142,8 +148,9 @@ def Newbie():
         user.joinedon = data[3]
         user.numposts = data[4]
         user.numlogins = data[5]
-        user.notify = data[6] != 0
-        user.ccURI = data[7]
+        user.lastdesign = data[6]
+        user.notify = data[7] != 0
+        user.ccURI = data[8]
         user.inGalUsers = True
         return user
 
