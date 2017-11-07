@@ -419,6 +419,14 @@ def gal_userinfo(username):
         u.unseen = design.NewerDesigns(u.lastdesign)
         return flask.json.jsonify({'userinfo': dict(u)})
 
+@app.route(u'/unseen')
+def getUnseen():
+    unseen = 0
+    u = current_user
+    if u.is_authenticated:
+        unseen = design.NewerDesigns(u.lastdesign)
+    return flask.json.jsonify({'unseen': unseen})
+
 @app.route(u'/newdesigns', methods=[u'POST'])
 @login_required
 def newdesigns():
