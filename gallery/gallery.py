@@ -44,6 +44,54 @@ def get_design(design_id):
         #time.sleep(5)
         return flask.json.jsonify({ 'design': dict(mydesign)})
 
+@app.route(u'/postdesigntags', methods=[u'POST'])
+def jpost_designtags():
+    jdesign = flask.request.get_json()
+    if not isinstance(jdesign, dict):
+        flask.abort(400, u'No data received.')
+    if not current_user.is_authenticated:
+        flask.abort(401, u'Not logged in/no user credentils provided.')
+
+    upload.formfix(jdesign)
+    jdesign.pop('title', None)
+    jdesign.pop('variation', None)
+    jdesign.pop('tiled', None)
+    jdesign.pop('notes', None)
+    jdesign.pop('cclicense', None)
+    jdesign.pop('ccURI', None)
+    jdesign.pop('ccName', None)
+    jdesign.pop('ccImage', None)
+
+    design_id = jdesign.get('designid', 0)
+    new_tags = jdesign.get('tags', [])
+    if not isinstance(design_id, int) or design_id <= 0:
+        flask.abort(400, u'Bad design id.')
+    if not isinstance(new_tags, list):
+        flask.abort(400, u'Bad tags.')
+    if not all(isinstance(elem, text) for elem in new_tags):
+        flask.abort(400, u'Bad tags.')
+
+    d = design.DesignbyID(design_id) # Get design from database
+    if d is None:
+            flask.abort(404, u'Design not found.')
+    orig_tags = d.tags
+    orig_tagids = d.tagids
+
+    if not gal_utils.validateTagger(d.owner):
+        flask.abort(401, u'Unauthorized to edit tags for this design.')
+    
+    d.init(**jdesign)                   # Merge in changes from POST
+    d.normalize()
+    id = d.save()
+
+    if id is not None:
+        design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
+        return flask.json.jsonify({'design': dict(d), 'tags': design.AllTags()})
+    else:
+        flask.abort(500, u'Failed to save design.')
+
+
+
 @app.route(u'/postdesign', methods=[u'POST'])
 def jpost_design():
     jdesign = flask.request.get_json()
@@ -77,10 +125,14 @@ def put_design(fdesign):
 
         upload.formfix(fdesign)
 
-        if 'tags' in fdesign:
-            new_tags = fdesign['tags']
-        else:
-            new_tags = []
+        design_id = fdesign.get('designid', 0)
+        new_tags = fdesign.get('tags', [])
+        if not isinstance(design_id, int) or design_id < 0:
+            flask.abort(400, u'Bad design id.')
+        if not isinstance(new_tags, list):
+            flask.abort(400, u'Bad tags.')
+        if not all(isinstance(elem, text) for elem in new_tags):
+            flask.abort(400, u'Bad tags.')
 
         cfdgPresent  = (u'cfdgfile' in flask.request.files and 
                         flask.request.files[u'cfdgfile'].filename != u'')
@@ -91,16 +143,13 @@ def put_design(fdesign):
         imageJson = (flask.request.is_json and 'imagefile' in fdesign
                      and fdesign['imagefile'] is not None)
 
-        if u'designid' in fdesign and fdesign['designid'] != 0:
-            design_id = fdesign['designid']
-            if not isinstance(design_id, int) or design_id <= 0:
-                flask.abort(400, u'Bad design id.')
+        if design_id != 0:
             d = design.DesignbyID(design_id) # Get design from database
+            if d is None:
+                flask.abort(404, u'Design not found.')
             orig_tags = d.tags
             orig_tagids = d.tagids
 
-            if d is None:
-                flask.abort(404, u'Design not found.')
             if not gal_utils.validateOwner(d.owner):
                 flask.abort(401, u'Unauthorized to edit this design.')
             

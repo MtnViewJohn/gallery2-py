@@ -45,6 +45,7 @@ def get(username):
         else:
             user.password_hash = data[0]
         user.is_admin = data[1] == 1
+        user.is_tagger = username in ['MtnViewJohn', 'MtnViewMark', 'kipling', 'Guigui']
         if hasattr(data[2], 'decode'):
             user.email = data[2].decode('utf-8')
         else:
@@ -77,6 +78,7 @@ class User(UserMixin):
             flask.abort(400, u'Bad request')
         self.id = user
         self.is_admin = False
+        self.is_tagger = False
         self.email = u''
         self.password_hash = u''
         self.lastlogin = int(time.time())
@@ -90,7 +92,8 @@ class User(UserMixin):
 
     def __iter__(self):
         yield 'username', self.id
-        yield 'admin', self.is_admin
+        yield 'admin', False
+        yield 'tagger', self.is_tagger
         yield 'email', self.email
         yield 'lastlogin', self.lastlogin
         yield 'joinedon', self.joinedon

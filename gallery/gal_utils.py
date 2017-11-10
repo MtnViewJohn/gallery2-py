@@ -38,6 +38,12 @@ def validateOwner(owner):
     return  current_user.is_admin or current_user.id == owner
     
 
+def validateTagger(owner):
+    if not current_user.is_authenticated:
+        return False
+    return  current_user.is_tagger or current_user.id == owner
+
+
 def legalVariation(var):
     if not isinstance(var, text): return False
     if len(var) > 6: return False
