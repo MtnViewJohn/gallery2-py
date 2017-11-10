@@ -92,7 +92,7 @@ class User(UserMixin):
 
     def __iter__(self):
         yield 'username', self.id
-        yield 'admin', False
+        yield 'admin', self.is_admin
         yield 'tagger', self.is_tagger
         yield 'email', self.email
         yield 'lastlogin', self.lastlogin
