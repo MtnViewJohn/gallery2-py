@@ -344,6 +344,15 @@ def get_random(seed, start, num, ccOnly):
     return complete(design.DesignByRandom(seed, start, num, ccOnly), start, num, 
                     u'random/' + str(seed))
 
+@app.route(u'/popularrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': False})
+@app.route(u'/ccpopularrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': True})
+def get_poprandom(seed, start, num, ccOnly):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad design count')
+
+    return complete(design.DesignByRandomPopular(seed, start, num, ccOnly), start, num, 
+                    u'random/' + str(seed))
+
 @app.route(u'/auxinfo/<int:design_id>')
 def getFans(design_id):
     fans = design.GetFans(design_id)
