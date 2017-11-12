@@ -17,6 +17,7 @@ import os
 import os.path
 import base64
 import translate
+import random
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -338,6 +339,8 @@ def get_title_num(title, ccOnly):
 @app.route(u'/random/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': False})
 @app.route(u'/ccrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': True})
 def get_random(seed, start, num, ccOnly):
+    if seed == 0:
+        seed = random.randint(1,1000000000)
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
 
