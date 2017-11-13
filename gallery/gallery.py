@@ -502,15 +502,30 @@ def newdesigns():
 
 @app.route(u'/newbie')
 def get_newbie():
-    u = user.Newbie()
-    if u is None:
+    u = user.Newbie(1)
+    if len(u) != 1:
         return flask.json.jsonify({'userinfo': {}})
     else:
-        count, designs = design.DesignByDesigner(u.id, 0, 1, False)
+        count, designs = design.DesignByDesigner(u[0].id, 0, 1, False)
         if len(designs) > 0:
             return flask.json.jsonify({ 'design': dict(designs[0])})
         else:
             return flask.json.jsonify({ 'design': {}})
+
+
+
+@app.route(u'/newbies/<int:ignore>/<int:count>')
+def get_newbies(ignore, count):
+    if count < 1 or count > 50:
+        flask.abort(400,u'Bad user count')
+    users = user.Newbie(count)
+    designs = []
+    for u in users:
+        count, udesigns = design.DesignByDesigner(u.id, 0, 1, False)
+        if len(udesigns) > 0:
+            designs.append(dict(udesigns[0]))
+
+    return flask.json.jsonify({'designs': designs})
 
 
 
