@@ -110,11 +110,6 @@ def uploadpng(design, file, jpeg):
             thumbpath = os.path.join(path, u'thumb_' + filename)
             sm_thumbpath = os.path.join(path, u'sm_thumb_' + filename)
 
-            if jpeg:
-                pngimage = pngimage.convert(u'RGB')
-            else:
-                pngimage = pngimage.convert(u'P', palette=Image.ADAPTIVE)
-
             resample(pngimage, (800,800), imagepath, jpeg)
             files.append(imagepath)
             resample(pngimage, (300,300), thumbpath, jpeg)
@@ -160,9 +155,11 @@ def resample(image, newsize, filename, jpeg):
     newimage = image.resize(finalsize, Image.BICUBIC)
 
     if jpeg:
-        newimage.save(filename, u'JPEG', quality=85, optimize=True)
+        jpegimage = newimage.convert(u'RGB')
+        jpegimage.save(filename, u'JPEG', quality=85, optimize=True)
     else:
-        newimage.save(filename, u'PNG', optimize=True)
+        png8image = newimage.convert(u'P', palette=Image.ADAPTIVE)
+        png8image.save(filename, u'PNG', optimize=True)
 
 
 
