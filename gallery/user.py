@@ -120,7 +120,7 @@ class User(UserMixin):
                 cursor.execute(u'INSERT INTO gal_users (screenname, email, '
                                u'lastlogin, joinedon, numposts, numlogins, '
                                u'lastdesign, notify_of_comments, ccURI) VALUES'
-                               u'(%s,%s,NOW(),NOW(),%s,%s,%s,%s)',
+                               u'(%s,%s,NOW(),NOW(),%s,%s,%s,%s,%s)',
                                (self.id,self.email,self.numposts,
                                 self.numlogins,self.lastdesign,
                                 1 if self.notify else 0,self.ccURI))
