@@ -17,7 +17,9 @@ class Translator:
     usereof = 12
     usertargetmod = 13
 
-    symbols = [u'{', u'}', u'[', u']', u'^', u'*', u'/', u'+', u'-', u'(', u')', u',', u'|']
+    symbols = [u'{', u'}', u'[', u']', u'^', u'*', u'/', u'+', u'-', u'(', 
+               u')', u',', u'|', u'\u2026', u'\u00B1', u'\u2264', u'\u2265',
+               u'\u2260', u'\u221e']
 
     tokens = [
         (re.compile(r'startshape\b'), userstart),
