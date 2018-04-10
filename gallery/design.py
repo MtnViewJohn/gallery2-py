@@ -196,6 +196,8 @@ class Design:
             yield 'fans', self.fans
         if hasattr(self, 'imagesize'):
             yield 'imagesize', self.imagesize
+        if hasattr(self, 'thumbsize'):
+            yield 'thumbsize', self.thumbsize
 
 
     def normalize(self):
@@ -433,7 +435,7 @@ def complete(cursor):
             if design.ready4display():
                 sz = GetSize(design.thumblocation)
                 if sz is not None:
-                    design.imagesize = sz;
+                    design.thumbsize = sz;
                 ret.append(design)
         except:
             pass
