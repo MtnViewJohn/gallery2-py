@@ -9,7 +9,6 @@ import user
 import upload
 import gal_utils
 from gal_utils import text
-from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 from werkzeug.datastructures import FileStorage
 import io
@@ -22,6 +21,7 @@ import random
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
 if app.debug:
+    from flask_cors import CORS
     CORS(app, supports_credentials=True)
 
 @app.teardown_appcontext
