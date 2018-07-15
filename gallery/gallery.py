@@ -97,6 +97,7 @@ def jpost_designtags():
 def jpost_design():
     jdesign = flask.request.get_json()
     newdesign = put_design(jdesign)
+    print dict(newdesign[1])
     return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
 
 @app.route(u'/fpostdesign', methods=[u'POST'])
@@ -184,8 +185,9 @@ def put_design(fdesign):
                                             filename = fdesign['imagefile']['filename'])
                     upload.uploadpng(d, pngfile, jpeg)
                 newurl = u'http://localhost:8000/main.html#design/' + text(id)
+                newdesign = design.DesignbyID(id)
 
-                return (newurl, d)
+                return (newurl, newdesign)
             except:
                 design.UnaddDesign(id)
                 raise
