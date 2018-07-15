@@ -376,6 +376,40 @@ def DeleteDesign(design_id):
                     pass
 
 
+def UnaddDesign(design_id):
+    db = gal_utils.get_db()
+    with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
+        query = Design.Query_base + u'WHERE designid=%s'
+        cursor.execute(query, (design_id,))
+
+        if cursor.rowcount != 1:
+            return
+
+        designdata = cursor.fetchone()
+        cursor.execute(u'DELETE FROM gal_designs WHERE designid=%s', (design_id,))
+        if cursor.rowcount != 1:
+            return
+        cursor.execute(u'DELETE FROM gal_comments WHERE designid=%s', (design_id,))
+        cursor.execute(u'DELETE FROM gal_favorites WHERE designid=%s', (design_id,))
+        cursor.execute(u'UPDATE gal_users SET numposts = numposts - 1 WHERE screenname=%s',
+            (designdata['owner'],))
+
+        files = []
+        if 'filelocation' in designdata:
+            files.append(designdata['filelocation'])
+        if 'imagelocation' in designdata:
+            files.append(designdata['imagelocation'])
+        if 'thumblocation' in designdata:
+            files.append(designdata['thumblocation'])
+        if 'sm_thumblocation' in designdata:
+            files.append(designdata['sm_thumblocation'])
+        for file in files:
+            if os.path.isfile(file):
+                try:
+                    os.unlink(file)
+                except OSError:
+                    pass
+
 def NewerDesigns(design_id):
     if design_id == 0:
         return 0

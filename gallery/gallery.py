@@ -166,25 +166,29 @@ def put_design(fdesign):
         id = d.save()
 
         if id is not None:
-            design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
-            jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
-            if cfdgPresent:
-                upload.uploadcfdg(d, flask.request.files['cfdgfile'])
-            if imagePresent:
-                upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
-            if cfdgJson:
-                cfdgtext = base64.standard_b64decode(fdesign['cfdgfile']['contents'])
-                cfdgfile = FileStorage(stream = io.BytesIO(cfdgtext), name = 'cfdgfile',
-                                        filename = fdesign['cfdgfile']['filename'])
-                upload.uploadcfdg(d, cfdgfile, fdesign['cfdgfile']['filename'])
-            if imageJson:
-                pngdata = base64.standard_b64decode(fdesign['imagefile']['contents'])
-                pngfile = FileStorage(stream = io.BytesIO(pngdata), name = 'imagefile',
-                                        filename = fdesign['imagefile']['filename'])
-                upload.uploadpng(d, pngfile, jpeg)
-            newurl = u'http://localhost:8000/main.html#design/' + text(id)
+            try:
+                design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
+                jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
+                if cfdgPresent:
+                    upload.uploadcfdg(d, flask.request.files['cfdgfile'])
+                if imagePresent:
+                    upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
+                if cfdgJson:
+                    cfdgtext = base64.standard_b64decode(fdesign['cfdgfile']['contents'])
+                    cfdgfile = FileStorage(stream = io.BytesIO(cfdgtext), name = 'cfdgfile',
+                                            filename = fdesign['cfdgfile']['filename'])
+                    upload.uploadcfdg(d, cfdgfile, fdesign['cfdgfile']['filename'])
+                if imageJson:
+                    pngdata = base64.standard_b64decode(fdesign['imagefile']['contents'])
+                    pngfile = FileStorage(stream = io.BytesIO(pngdata), name = 'imagefile',
+                                            filename = fdesign['imagefile']['filename'])
+                    upload.uploadpng(d, pngfile, jpeg)
+                newurl = u'http://localhost:8000/main.html#design/' + text(id)
 
-            return (newurl, d)
+                return (newurl, d)
+            except:
+                design.UnaddDesign(id)
+                raise
         else:
             flask.abort(500, u'Failed to save design.')
 
