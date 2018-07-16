@@ -39,9 +39,10 @@ def makeFilePath(basedir, owner):
 
     try:
         os.makedirs(path, 0o775)
-        return path
-    except OSError:
-        flask.abort(500,u'Cannot create directory: ' + path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            flask.abort(500,u'Cannot create directory: ' + path)
+    return path
 
 
 def uploadcfdg(design, file, name):
@@ -61,8 +62,9 @@ def uploadcfdg(design, file, name):
     if not os.path.isdir(cfdgdir):
         try:
             os.mkdir(cfdgdir, 0o775)
-        except OSError:
-            flask.abort(500,u'Cannot create directory')
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                flask.abort(500,u'Cannot create directory')
 
     try:
         file.save(cfdgpath)
