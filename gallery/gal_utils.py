@@ -65,7 +65,7 @@ def validateLicense(data):
 def legalFilePath(filepath, cfdgfile):
     if not isinstance(filepath, text): return False
     if filepath.find(u'..') != -1: return False
-    if filepath.find(u'uploads/') == -1: return False
+    if not filepath.startswith(u'uploads/'): return False
     if cfdgfile:
         if not filepath.endswith(u'.cfdg'): return False
     else:
