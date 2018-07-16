@@ -171,19 +171,19 @@ def put_design(fdesign):
                 design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
                 jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
                 if cfdgPresent:
-                    upload.uploadcfdg(d, flask.request.files['cfdgfile'])
+                    upload.uploadcfdg(app.config['UPLOAD_DIR'], d, flask.request.files['cfdgfile'])
                 if imagePresent:
-                    upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
+                    upload.uploadpng(app.config['UPLOAD_DIR'], d, flask.request.files['imagefile'], jpeg)
                 if cfdgJson:
                     cfdgtext = base64.standard_b64decode(fdesign['cfdgfile']['contents'])
                     cfdgfile = FileStorage(stream = io.BytesIO(cfdgtext), name = 'cfdgfile',
                                             filename = fdesign['cfdgfile']['filename'])
-                    upload.uploadcfdg(d, cfdgfile, fdesign['cfdgfile']['filename'])
+                    upload.uploadcfdg(app.config['UPLOAD_DIR'], d, cfdgfile, fdesign['cfdgfile']['filename'])
                 if imageJson:
                     pngdata = base64.standard_b64decode(fdesign['imagefile']['contents'])
                     pngfile = FileStorage(stream = io.BytesIO(pngdata), name = 'imagefile',
                                             filename = fdesign['imagefile']['filename'])
-                    upload.uploadpng(d, pngfile, jpeg)
+                    upload.uploadpng(app.config['UPLOAD_DIR'], d, pngfile, jpeg)
                 newurl = u'http://localhost:8000/main.html#design/' + text(id)
                 newdesign = design.DesignbyID(id)
 

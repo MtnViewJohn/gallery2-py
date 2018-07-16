@@ -45,7 +45,7 @@ def makeFilePath(basedir, owner):
     return path
 
 
-def uploadcfdg(design, file, name):
+def uploadcfdg(basedir, design, file, name):
     db = gal_utils.get_db()
     oldcfdg = design.filelocation
 
@@ -54,7 +54,7 @@ def uploadcfdg(design, file, name):
     if u'.' not in name or name.rsplit('.', 1)[1].lower() != u'cfdg':
         name = u'design.cfdg'
 
-    cfdgdir = os.path.join(makeFilePath(u'uploads', design.owner), str(design.designid))
+    cfdgdir = os.path.join(makeFilePath(basedir, design.owner), str(design.designid))
     cfdgpath = os.path.join(cfdgdir, name)
     if not gal_utils.legalFilePath(cfdgpath, True):
         flask.abort(400,u'Bad cfdg file name.')
@@ -86,7 +86,7 @@ def uploadcfdg(design, file, name):
             flask.abort(500,u'Cannot write database')
 
 
-def uploadpng(design, file, jpeg):
+def uploadpng(basedir, design, file, jpeg):
     try:
         pngimage = Image.open(file.stream)
     except IOError:
@@ -106,7 +106,7 @@ def uploadpng(design, file, jpeg):
                     except OSError:
                         pass
 
-            path = makeFilePath(u'uploads', design.owner)
+            path = makeFilePath(basedir, design.owner)
             filename = text(design.designid) + (u'.jpg' if jpeg else u'.png')
             imagepath = os.path.join(path, u'full_' + filename)
             thumbpath = os.path.join(path, u'thumb_' + filename)
