@@ -8,7 +8,8 @@ from gal_utils import text
 from PIL import Image
 import os
 import os.path
-#import traceback
+import traceback
+import sys
 
 S3_dir = u'https://glyphic.s3.amazonaws.com/cfa/gallery/'
 
@@ -157,7 +158,10 @@ class Design:
         except HTTPException:
             raise
         except:
-            #traceback.print_exc()
+            if 'wsgi.errors' in os.environ:
+                traceback.print_exc(None, os.environ['wsgi.errors'])
+            else:
+                traceback.print_exc()
             flask.abort(400,u'Cannot instantiate a design.')
 
     def __init__(self, **data):
@@ -289,7 +293,10 @@ class Design:
         except HTTPException:
             raise
         except:
-            #traceback.print_exc()
+            if 'wsgi.errors' in os.environ:
+                traceback.print_exc(None, os.environ['wsgi.errors'])
+            else:
+                traceback.print_exc()
             flask.abort(400,u'Cannot normalize a design.')
 
     def ready4display(self):
