@@ -22,8 +22,10 @@ app = flask.Flask(__name__)
 app.config.from_json('config.json')
 os.chdir(app.config['UPLOAD_DIR'])
 if app.debug:
+    import logging
     from flask_cors import CORS
     CORS(app, supports_credentials=True)
+    logging.getLogger('flask_cors').level = logging.DEBUG
 
 @app.teardown_appcontext
 def close_db(error):
@@ -49,6 +51,25 @@ def get_design(design_id):
 @app.route(u'/postdesigntags', methods=[u'POST'])
 def jpost_designtags():
     jdesign = flask.request.get_json()
+    newdesigntags = put_designtags(jdesign)
+    return flask.json.jsonify({'design': dict(newdesigntags), 'tags': design.AllTags()})
+
+@app.route(u'/fpostdesigntags', methods=[u'POST'])
+def fpost_designtags():
+    try:
+        fdesign = dict(flask.request.form.iteritems())
+        if 'tags' in fdesign:
+            fdesign['tags'] = fdesign['tags'].split(u' ')
+        newdesign = put_design(fdesign)
+        return flask.json.jsonify({'design': dict(newdesigntags), 'tags': design.AllTags()})
+    except HTTPException as e:
+        print e
+        return gal_utils.errorUrl(text(e))
+    except Exception as e:
+        print e
+        return gal_utils.errorUrl(u'Unknown error occured.')
+
+def put_designtags(jdesign):
     if not isinstance(jdesign, dict):
         flask.abort(400, u'No data received.')
     if not current_user.is_authenticated:
@@ -88,7 +109,8 @@ def jpost_designtags():
 
     if id is not None:
         design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
-        return flask.json.jsonify({'design': dict(d), 'tags': design.AllTags()})
+        newdesign = design.DesignbyID(id)
+        return newdesign
     else:
         flask.abort(500, u'Failed to save design.')
 
@@ -98,15 +120,16 @@ def jpost_designtags():
 def jpost_design():
     jdesign = flask.request.get_json()
     newdesign = put_design(jdesign)
-    print dict(newdesign[1])
     return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
 
 @app.route(u'/fpostdesign', methods=[u'POST'])
 def fpost_design():
     try:
         fdesign = dict(flask.request.form.iteritems())
+        if 'tags' in fdesign:
+            fdesign['tags'] = fdesign['tags'].split(u' ')
         newdesign = put_design(fdesign)
-        return flask.redirect(newdesign[0], code=303)
+        return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
     except HTTPException as e:
         print e
         return gal_utils.errorUrl(text(e))
@@ -172,7 +195,7 @@ def put_design(fdesign):
                 design.UpdateTags(id, orig_tags, orig_tagids, new_tags)
                 jpeg = 'compression' not in fdesign or fdesign['compression'] != u'PNG-8'
                 if cfdgPresent:
-                    upload.uploadcfdg(d, flask.request.files['cfdgfile'])
+                    upload.uploadcfdg(d, flask.request.files['cfdgfile'], flask.request.files['cfdgfile'].filename)
                 if imagePresent:
                     upload.uploadpng(d, flask.request.files['imagefile'], jpeg)
                 if cfdgJson:
