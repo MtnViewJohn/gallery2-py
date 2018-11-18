@@ -60,7 +60,7 @@ def fpost_designtags():
         fdesign = dict(flask.request.form.iteritems())
         if 'tags' in fdesign:
             fdesign['tags'] = fdesign['tags'].split(u' ')
-        newdesign = put_design(fdesign)
+        newdesigntags = put_designtags(fdesign)
         return flask.json.jsonify({'design': dict(newdesigntags), 'tags': design.AllTags()})
     except HTTPException as e:
         print e
