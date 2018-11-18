@@ -146,15 +146,6 @@ def linkCvt(oldLink):
         return u'#design/' + oldLink[7:].strip()
     return oldLink.strip()
 
-def errorUrl(msg):
-    if msg[0:3].isdigit():
-        msg = msg[3:]
-    if flask.current_app.debug:
-        url = u'http://localhost:8000/main.html#error/' + encodeFragment(msg)
-    else:
-        url = u'../../gallery2/index.html#error/' + encodeFragment(msg)
-    return flask.redirect(url, code = 303)
-
 def loginUrl():
     if flask.current_app.debug:
         url = u'http://localhost:8000/main.html#newest/0'

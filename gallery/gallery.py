@@ -56,18 +56,11 @@ def jpost_designtags():
 
 @app.route(u'/fpostdesigntags', methods=[u'POST'])
 def fpost_designtags():
-    try:
-        fdesign = dict(flask.request.form.iteritems())
-        if 'tags' in fdesign:
-            fdesign['tags'] = fdesign['tags'].split(u' ')
-        newdesigntags = put_designtags(fdesign)
-        return flask.json.jsonify({'design': dict(newdesigntags), 'tags': design.AllTags()})
-    except HTTPException as e:
-        print e
-        return gal_utils.errorUrl(text(e))
-    except Exception as e:
-        print e
-        return gal_utils.errorUrl(u'Unknown error occured.')
+    fdesign = dict(flask.request.form.iteritems())
+    if 'tags' in fdesign:
+        fdesign['tags'] = fdesign['tags'].split(u' ')
+    newdesigntags = put_designtags(fdesign)
+    return flask.json.jsonify({'design': dict(newdesigntags), 'tags': design.AllTags()})
 
 def put_designtags(jdesign):
     if not isinstance(jdesign, dict):
@@ -124,18 +117,11 @@ def jpost_design():
 
 @app.route(u'/fpostdesign', methods=[u'POST'])
 def fpost_design():
-    try:
-        fdesign = dict(flask.request.form.iteritems())
-        if 'tags' in fdesign:
-            fdesign['tags'] = fdesign['tags'].split(u' ')
-        newdesign = put_design(fdesign)
-        return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
-    except HTTPException as e:
-        print e
-        return gal_utils.errorUrl(text(e))
-    except Exception as e:
-        print e
-        return gal_utils.errorUrl(u'Unknown error occured.')
+    fdesign = dict(flask.request.form.iteritems())
+    if 'tags' in fdesign:
+        fdesign['tags'] = fdesign['tags'].split(u' ')
+    newdesign = put_design(fdesign)
+    return flask.json.jsonify({'design': dict(newdesign[1]), 'tags': design.AllTags()})
 
 def put_design(fdesign):
         if not isinstance(fdesign, dict):
