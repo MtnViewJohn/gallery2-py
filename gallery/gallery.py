@@ -428,14 +428,14 @@ def get_comments(design_id):
         jcomments = list(jcomments)
     return flask.json.jsonify({'designid': design_id, 'comments': jcomments})
 
-@app.route(u'/updatecomment/<int:comment_id>', methods=[u'PUT'])
+@app.route(u'/updatecomment/<int:comment_id>', methods=[u'PUT', u'POST'])
 @login_required
 def updateComment(comment_id):
     newText = flask.request.data
     cmt = comment.UpdateComment(comment_id, newText)
     return flask.json.jsonify(dict(cmt))
 
-@app.route(u'/createcomment/<int:design_id>', methods=[u'PUT'])
+@app.route(u'/createcomment/<int:design_id>', methods=[u'PUT', u'POST'])
 @login_required
 def createComment(design_id):
     newText = flask.request.data
