@@ -7,7 +7,8 @@ import gal_utils
 from flask_login import current_user
 
 class Comment:
-    Query_base = (u'SELECT screenname, comment, UNIX_TIMESTAMP(whenposted) AS postdate, '
+    Query_base = (u'SELECT screenname, CONVERT(comment USING utf8) AS comment, '
+                  u'UNIX_TIMESTAMP(whenposted) AS postdate, '
                   u'commentid FROM gal_comments ')
 
     def init(self, **data):
@@ -20,10 +21,7 @@ class Comment:
                 self.screenname = data['screenname']
 
             if 'comment' in data:
-                if hasattr(data['comment'], 'decode'):
-                    self.comment = data['comment'].decode('utf-8')
-                else:
-                    self.comment = data['comment']
+                self.comment = data['comment']
 
             if 'postdate' in data:
                 if not isinstance(data['postdate'], int):

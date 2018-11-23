@@ -28,16 +28,18 @@ class Design:
     Query_base = (u'SELECT designid, owner, title, variation, tiled, ccURI, ccName, '
                   u'ccImage, filelocation, S3, imageversion, imagelocation, '
                   u'thumblocation, sm_thumblocation, numvotes, '
-                  u'UNIX_TIMESTAMP(whenuploaded) AS uploaddate, notes FROM gal_designs ')
+                  u'UNIX_TIMESTAMP(whenuploaded) AS uploaddate, '
+                  u'CONVERT(notes USING utf8) as notes FROM gal_designs ')
     Query_base_d = (u'SELECT d.designid, d.owner, d.title, d.variation, d.tiled, d.ccURI, '
                     u'd.ccName, d.ccImage, d.filelocation, d.S3, d.imageversion, '
                     u'd.imagelocation, d.thumblocation, d.sm_thumblocation, d.numvotes, '
-                    u'UNIX_TIMESTAMP(d.whenuploaded) AS uploaddate, d.notes FROM '
-                    u'gal_designs AS d ')
+                    u'UNIX_TIMESTAMP(d.whenuploaded) AS uploaddate, '
+                    u'CONVERT(d.notes USING utf8) AS notes FROM gal_designs AS d ')
     Query_CC = u'ccURI LIKE "%creativecommons.org%"'
 
     def init(self, **data):
         try:
+            print data
             if 'designid' in data:
                 id = int(data['designid'])
                 if id < 0:
@@ -150,10 +152,7 @@ class Design:
             if 'notes' in data:
                 if len(data['notes']) > 1000:
                     flask.abort(400,u'Notes cannot be longer than 1000 bytes.')
-                if hasattr(data['notes'], 'decode'):
-                    self.notes = data['notes'].decode('utf-8')
-                else:
-                    self.notes = data['notes']
+                self.notes = data['notes']
 
         except HTTPException:
             raise
