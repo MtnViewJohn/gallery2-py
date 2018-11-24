@@ -39,7 +39,6 @@ class Design:
 
     def init(self, **data):
         try:
-            print data
             if 'designid' in data:
                 id = int(data['designid'])
                 if id < 0:

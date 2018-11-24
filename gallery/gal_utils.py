@@ -27,7 +27,6 @@ def legalOwner(owner):
     if owner == u'': return False
     try:
         pos = next(i for i,x in enumerate(owner) if x in u'#&;:`|*?~<>^()[]{}$\\@%,/"-\t\f\r\n')
-        print owner, pos
         return False
     except:
         return True
