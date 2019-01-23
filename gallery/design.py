@@ -3,8 +3,8 @@ import time
 from contextlib import closing
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
-import gal_utils
-from gal_utils import text
+from . import gal_utils
+from .gal_utils import text
 from PIL import Image
 import os
 import os.path

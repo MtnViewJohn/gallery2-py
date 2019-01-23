@@ -3,7 +3,7 @@ import time
 from contextlib import closing
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
-import gal_utils
+from . import gal_utils
 from flask_login import current_user
 
 class Comment:

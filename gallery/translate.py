@@ -1,6 +1,6 @@
 import io
 import re
-from gal_utils import text
+from .gal_utils import text
 
 class Translator:
     userstring = 1

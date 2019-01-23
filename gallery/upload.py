@@ -5,10 +5,10 @@ import flask
 from contextlib import closing
 from flask_login import current_user
 from PIL import Image
-import gal_utils
+from . import gal_utils
 from hashlib import md5
 from werkzeug.exceptions import HTTPException
-from gal_utils import text
+from .gal_utils import text
 #import traceback
 from werkzeug.utils import secure_filename
 
