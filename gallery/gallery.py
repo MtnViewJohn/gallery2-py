@@ -27,7 +27,7 @@ if app.debug:
     from flask_cors import CORS
     CORS(app, supports_credentials=True)
     logging.getLogger('flask_cors').level = logging.DEBUG
-PY3 = sys.version_info[0] == 3
+PY3 = sys.version_info[0] >= 3
 
 @app.teardown_appcontext
 def close_db(error):

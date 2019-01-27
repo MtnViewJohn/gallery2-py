@@ -5,8 +5,7 @@ import mysql.connector.pooling
 from mysql.connector.constants import ClientFlag
 import sys
 
-PY3 = sys.version_info[0] == 3
-PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] >= 3
 
 if PY3:
     text = str
