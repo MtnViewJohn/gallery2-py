@@ -2,10 +2,10 @@ import flask
 import time
 from flask_login import UserMixin
 from contextlib import closing
-from . import gal_utils
+import gal_utils
 from passlib.apps import phpbb3_context
 from passlib.hash import bcrypt
-from .gal_utils import text
+from gal_utils import text
 
 def canLogin(username, password):
     if not gal_utils.legalOwner(username) or not isinstance(password, text):

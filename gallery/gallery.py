@@ -3,19 +3,19 @@ import flask
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from contextlib import closing
 import time
-from . import design
-from . import comment
-from . import user
-from . import upload
-from . import gal_utils
-from .gal_utils import text
+import design
+import comment
+import user
+import upload
+import gal_utils
+from gal_utils import text
 from werkzeug.exceptions import HTTPException
 from werkzeug.datastructures import FileStorage
 import io
 import os
 import os.path
 import base64
-from . import translate
+import translate
 import random
 import sys
 
