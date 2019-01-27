@@ -17,6 +17,7 @@ import os.path
 import base64
 from . import translate
 import random
+import sys
 
 app = flask.Flask(__name__)
 app.config.from_json('config.json')
@@ -26,6 +27,7 @@ if app.debug:
     from flask_cors import CORS
     CORS(app, supports_credentials=True)
     logging.getLogger('flask_cors').level = logging.DEBUG
+PY3 = sys.version_info[0] == 3
 
 @app.teardown_appcontext
 def close_db(error):
@@ -56,7 +58,10 @@ def jpost_designtags():
 
 @app.route(u'/fpostdesigntags', methods=[u'POST'])
 def fpost_designtags():
-    fdesign = dict(flask.request.form.iteritems())
+    if PY3:
+        fdesign = dict(flask.request.form.items())
+    else:
+        fdesign = dict(flask.request.form.iteritems())
     if 'tags' in fdesign:
         fdesign['tags'] = fdesign['tags'].split(u' ')
     newdesigntags = put_designtags(fdesign)
@@ -117,7 +122,10 @@ def jpost_design():
 
 @app.route(u'/fpostdesign', methods=[u'POST'])
 def fpost_design():
-    fdesign = dict(flask.request.form.iteritems())
+    if PY3:
+        fdesign = dict(flask.request.form.items())
+    else:
+        fdesign = dict(flask.request.form.iteritems())
     if 'tags' in fdesign:
         fdesign['tags'] = fdesign['tags'].split(u' ')
     newdesign = put_design(fdesign)
