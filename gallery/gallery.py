@@ -50,6 +50,26 @@ def get_design(design_id):
         #time.sleep(5)
         return flask.json.jsonify({ 'design': dict(mydesign)})
 
+@app.route(u'/cfdg/<int:design_id>', methods=[u'GET', u'HEAD'])
+def get_cfdg(design_id):
+    if design_id <= 0:
+        flask.abort(400,u'Bad design id')
+
+    mydesign = design.DesignbyID(design_id)
+    if mydesign is None:
+        flask.abort(404,u'Design not found')
+
+    try:
+        fullpath = os.path.join(app.root_path, mydesign.filelocation)
+        with open(fullpath, mode = u'rb') as myfile:
+            cfdgtxt = myfile.read().decode(u'utf-8')
+
+        return flask.json.jsonify({ u'cfdg': cfdgtxt,
+                                    'design': dict(mydesign)})
+    except Exception:
+        flask.abort(500, u'Failed to load cfdg file.')
+
+
 @app.route(u'/postdesigntags', methods=[u'POST'])
 def jpost_designtags():
     jdesign = flask.request.get_json()
