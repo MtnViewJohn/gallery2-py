@@ -161,18 +161,18 @@ def resample(image, newsize, filename, jpeg):
     if image.format == u'GIF':
         if finalsize[0] != oldsize[0] or finalsize[1] != oldsize[1]:
             if image.is_animated:
-                looped = image.info['loop'] if 'loop' in image.info else 1
+                looped = image.info['loop'] if 'loop' in image.info else 0
                 duratn = image.info['duration'] if 'duration' in image.info else 100
                 frames = []
                 for i in range(0, image.n_frames):
                     image.seek(i)
                     frames.append(image.resize(finalsize, Image.BICUBIC))
-                frames[0].save(filename, u'GIF', save_all=True, append_images=frames[1:], optimize=False, duration=duratn, loop=looped)
+                frames[0].save(filename, u'GIF', save_all=True, append_images=frames[1:], optimize=True, duration=duratn, loop=looped)
             else:
                 newimage = image.resize(finalsize, Image.BICUBIC)
-                newimage.save(filename, u'GIF', optimize=False)
+                newimage.save(filename, u'GIF', optimize=True)
         else:
-            image.save(filename, u'GIF', save_all=True, optimize=False)
+            image.save(filename, u'GIF', save_all=True, optimize=True)
     else:
         if newsize[0] != oldsize[0] or newsize[1] != oldsize[1]:
             newimage = image.resize(finalsize, Image.BICUBIC)
