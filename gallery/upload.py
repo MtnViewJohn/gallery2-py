@@ -107,7 +107,11 @@ def uploadpng(design, file, jpeg):
                         pass
 
             path = makeFilePath(u'uploads', design.owner)
-            filename = text(design.designid) + (u'.jpg' if jpeg else u'.png')
+            if pngimage.format == u'GIF':
+                ext = u'.gif'
+            else:
+                ext = u'.jpg' if jpeg else u'.png'
+            filename = text(design.designid) + ext
             imagepath = os.path.join(path, u'full_' + filename)
             thumbpath = os.path.join(path, u'thumb_' + filename)
             sm_thumbpath = os.path.join(path, u'sm_thumb_' + filename)
@@ -154,14 +158,33 @@ def resample(image, newsize, filename, jpeg):
         if finalsize[1] > newsize[1]:
             finalsize = (int(oldsize[0]/frac[1]), newsize[1])
 
-    newimage = image.resize(finalsize, Image.BICUBIC)
-
-    if jpeg:
-        jpegimage = newimage.convert(u'RGB')
-        jpegimage.save(filename, u'JPEG', quality=85, optimize=True)
+    if image.format == u'GIF':
+        if finalsize[0] != oldsize[0] or finalsize[1] != oldsize[1]:
+            if image.is_animated:
+                looped = image.info['loop'] if 'loop' in image.info else 1
+                duratn = image.info['duration'] if 'duration' in image.info else 100
+                frames = []
+                for i in range(0, image.n_frames):
+                    image.seek(i)
+                    frames.append(image.resize(finalsize, Image.BICUBIC))
+                frames[0].save(filename, u'GIF', save_all=True, append_images=frames[1:], optimize=False, duration=duratn, loop=looped)
+            else:
+                newimage = image.resize(finalsize, Image.BICUBIC)
+                newimage.save(filename, u'GIF', optimize=False)
+        else:
+            image.save(filename, u'GIF', save_all=True, optimize=False)
     else:
-        png8image = newimage.convert(u'P', palette=Image.ADAPTIVE)
-        png8image.save(filename, u'PNG', optimize=True)
+        if newsize[0] != oldsize[0] or newsize[1] != oldsize[1]:
+            newimage = image.resize(finalsize, Image.BICUBIC)
+        else:
+            newimage = image
+
+        if jpeg:
+            jpegimage = newimage.convert(u'RGB')
+            jpegimage.save(filename, u'JPEG', quality=85, optimize=True)
+        else:
+            png8image = newimage.convert(u'P', palette=Image.ADAPTIVE)
+            png8image.save(filename, u'PNG', optimize=True)
 
 
 
