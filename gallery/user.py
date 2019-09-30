@@ -35,8 +35,11 @@ def get(username):
         cursor.execute(u'SELECT user_password, user_rank, user_email FROM phpbb3_users '
                        u'WHERE username=%s', (username,))
         data = cursor.fetchone()
-        if data is None or len(data) < 3 or not isinstance(data[1], int) or \
-                not isinstance(data[0], text) or not isinstance(data[2], text):
+        if data is None or len(data) < 3 or not isinstance(data[1], int):
+            return None
+        if not isinstance(data[0], text) and not isinstance(data[0], bytearray):
+            return None
+        if not isinstance(data[2], text) and not isinstance(data[2], bytearray):
             return None
 
         user = User(username)
