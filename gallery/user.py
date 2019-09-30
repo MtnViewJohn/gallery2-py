@@ -36,7 +36,7 @@ def get(username):
                        u'WHERE username=%s', (username,))
         data = cursor.fetchone()
         if data is None or len(data) < 3 or not isinstance(data[1], int) or \
-                not isinstance(data[0], bytearray) or not isinstance(data[2], bytearray):
+                not isinstance(data[0], text) or not isinstance(data[2], text):
             return None
 
         user = User(username)
