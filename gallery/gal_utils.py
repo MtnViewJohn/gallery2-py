@@ -105,7 +105,7 @@ def translate2Markdown(legacy):
             if out[-1] != u'\n':
                 out += u'\n'
             out += u'```'
-            if pos < len(legacy) and legacy[pos] != u'\n':
+            if pos >= len(legacy) or (pos < len(legacy) and legacy[pos] != u'\n'):
                 out += u'\n'
         else:
             pos = lpos + 6
