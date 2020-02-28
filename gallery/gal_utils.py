@@ -94,19 +94,19 @@ def translate2Markdown(legacy):
             pos = cpos + 6
             if out and out[-1] != u'\n':
                 out += u'\n'
-            out += u'```cfdg'
-            if pos < len(legacy) and legacy[pos] != u'\n':
-                out += u'\n'
+            out += u'```cfdg\n'
+            if pos < len(legacy) and legacy[pos] == u'\n':
+                pos = pos + 1
             cpos = legacy.find(u'[/code]', pos)
             if cpos == -1:
-                return out + legacy[pos:] + u'\n```'
+                return out + legacy[pos:] + u'\n```\n'
             out += legacy[pos:cpos]
             pos = cpos + 7
             if out[-1] != u'\n':
                 out += u'\n'
-            out += u'```'
-            if pos >= len(legacy) or (pos < len(legacy) and legacy[pos] != u'\n'):
-                out += u'\n'
+            out += u'```\n'
+            if pos < len(legacy) and legacy[pos] == u'\n':
+                pos = pos + 1
         else:
             pos = lpos + 6
             lpos = legacy.find(u']', pos)
