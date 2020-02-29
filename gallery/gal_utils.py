@@ -1,7 +1,6 @@
 import flask
 from flask_login import current_user
 import mysql.connector
-import mysql.connector.pooling
 from mysql.connector.constants import ClientFlag
 import sys
 
@@ -16,9 +15,8 @@ def get_db():
     db = getattr(flask.g, 'mysql_db', None)
     if db is None:
         mysql_cfg = flask.current_app.config['MYSQL']
-        cnxpool = mysql.connector.pooling.MySQLConnectionPool(
+        db = flask.g.mysql_db = mysql.connector.MySQLConnection(
             client_flags=[ClientFlag.FOUND_ROWS], autocommit=True, **mysql_cfg)
-        db = flask.g.mysql_db =  cnxpool.get_connection()
         db.autocommit = True
     return db
 
