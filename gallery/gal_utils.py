@@ -19,6 +19,7 @@ def get_db():
         cnxpool = mysql.connector.pooling.MySQLConnectionPool(
             client_flags=[ClientFlag.FOUND_ROWS], autocommit=True, **mysql_cfg)
         db = flask.g.mysql_db =  cnxpool.get_connection()
+        db.autocommit = True
     return db
 
 def legalOwner(owner):
