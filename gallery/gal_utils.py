@@ -15,9 +15,9 @@ def get_db():
     db = getattr(flask.g, 'mysql_db', None)
     if db is None:
         mysql_cfg = flask.current_app.config['MYSQL']
-        db = flask.g.mysql_db = mysql.connector.MySQLConnection(
-            client_flags=[ClientFlag.FOUND_ROWS], autocommit=True, **mysql_cfg)
-        db.autocommit = True
+        cnxpool = mysql.connector.pooling.MySQLConnectionPool(
+            client_flags=[ClientFlag.FOUND_ROWS], **mysql_cfg)
+        db = flask.g.mysql_db = cnxpool.get_connection()
     return db
 
 def legalOwner(owner):
