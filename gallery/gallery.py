@@ -18,9 +18,10 @@ import base64
 import translate
 import random
 import sys
+import json
 
 app = flask.Flask(__name__)
-app.config.from_json('config.json')
+app.config.from_file('config.json', load=json.load)
 os.chdir(app.config['UPLOAD_DIR'])
 if app.debug:
     import logging
