@@ -131,6 +131,7 @@ def UpdateComment(commentid, newComment):
             (newComment,current_user.id,commentid))
         if cursor.rowcount != 1:
             flask.abort(403, u'Cannot update comment')
+        db.commit()
         return CommentById(commentid)
 
 def CreateComment(designid, newComment):
@@ -144,6 +145,7 @@ def CreateComment(designid, newComment):
         commentid = cursor.lastrowid
         if cursor.rowcount != 1:
             flask.abort(403, u'Cannot add comment')
+        db.commit()
         return CommentById(commentid)
 
 def DeleteComment(commentid):
@@ -156,6 +158,7 @@ def DeleteComment(commentid):
             (current_user.id,commentid))
         if cursor.rowcount != 1:
             flask.abort(403, u'Cannot delete comment')
+        db.commit()
 
 
 

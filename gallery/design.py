@@ -315,6 +315,7 @@ class Design:
             if data[0] == u'Y': return True
 
             cursor.execute(u'UPDATE gal_designs SET S3 = "Y" WHERE designid=%s', (self.designid,))
+            db.commit()
             return cursor.rowcount == 1
 
     def save(self):
@@ -344,6 +345,7 @@ class Design:
             if cursor.rowcount == 1:
                 owner.ccURI = self.ccURI
                 owner.save()
+                db.commit()
                 return self.designid
         return None
 
@@ -370,6 +372,7 @@ def DeleteDesign(design_id):
         cursor.execute(u'DELETE FROM gal_favorites WHERE designid=%s', (design_id,))
         cursor.execute(u'UPDATE gal_users SET numposts = numposts - 1 WHERE screenname=%s',
             (design.owner,))
+        db.commit()
 
         files = [design.filelocation, design.imagelocation, 
                  design.thumblocation, design.sm_thumblocation]
@@ -398,6 +401,7 @@ def UnaddDesign(design_id):
         cursor.execute(u'DELETE FROM gal_favorites WHERE designid=%s', (design_id,))
         cursor.execute(u'UPDATE gal_users SET numposts = numposts - 1 WHERE screenname=%s',
             (designdata['owner'],))
+        db.commit()
 
         files = []
         if 'filelocation' in designdata:
@@ -683,6 +687,7 @@ def AddFave(design_id):
             (design_id,))
         if cursor.rowcount != 1:
             flask.abort(500, u'Could not add favorite.')
+        db.commit()
 
         ret = []        
         cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
@@ -705,6 +710,7 @@ def DeleteFave(design_id):
             (design_id,))
         if cursor.rowcount != 1:
             flask.abort(500, u'Could not delete favorite.')
+        db.commit()
 
         ret = []        
         cursor.execute(u'SELECT screenname FROM gal_favorites WHERE designid=%s '
@@ -730,6 +736,7 @@ def AddTags(tagnames, design_id):
                 (design_id, tagid))
             if cursor.lastrowid == 0:
                 flask.abort(500, u'Failed to add tag:' + tagname)
+            db.commit()
 
 
 
@@ -743,6 +750,7 @@ def DeleteTags(tagids, design_id):
             if cursor.rowcount > 0:
                 cursor.execute(u'UPDATE gal_tag_names SET count=count-1 '
                     u'WHERE id=%s AND count>0', (tagid,))
+        db.commit()
 
 def UpdateTags(design_id, oldtagnames, oldtagids, newtagnames):
     deleted = []

@@ -84,6 +84,7 @@ def uploadcfdg(design, file, name):
                        (cfdgpath,design.designid))
         if cursor.rowcount != 1:
             flask.abort(500,u'Cannot write database')
+        db.commit()
 
 
 def uploadpng(design, file, jpeg):
@@ -130,6 +131,7 @@ def uploadpng(design, file, jpeg):
                            (imagepath,thumbpath,sm_thumbpath,design.designid))
             if cursor.rowcount != 1:
                 flask.abort(500,u'Cannot write database')
+            db.commit()
 
     except Exception as e:
         for file in files:

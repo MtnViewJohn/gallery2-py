@@ -132,6 +132,7 @@ class User(UserMixin):
 
             if cursor.rowcount != 1:
                 flask.abort(500,u'Cannot update user table')
+            db.commit()
 
 def Newbie(count):
     db = gal_utils.get_db()
