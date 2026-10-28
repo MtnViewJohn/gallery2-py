@@ -68,7 +68,7 @@ def legalFilePath(filepath, cfdgfile):
     else:
         if not filepath.endswith((u'.jpg', u'.jpeg', u'.png', u'.gif')): return False
     try:
-        pos = next(i for i,x in enumerate(owner) if x in u'&#;`|*?~<>^()[]{}$\, \x0A\xFF')
+        pos = next(i for i,x in enumerate(owner) if x in u'&#;`|*?~<>^()[]{}$\\, \x0A\xFF')
         return False
     except:
         return True
