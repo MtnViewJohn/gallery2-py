@@ -3,9 +3,10 @@ import time
 from flask_login import UserMixin
 from contextlib import closing
 import gal_utils
-from passlib.apps import phpbb3_context
-from passlib.hash import bcrypt
+from passlib.context import CryptContext
 from gal_utils import text
+
+phpbb3new_context = CryptContext(["argon2", "bcrypt", "phpass"], phpass__ident="H")
 
 def canLogin(username, password):
     if not gal_utils.legalOwner(username) or not isinstance(password, text):
@@ -16,11 +17,10 @@ def canLogin(username, password):
         return None
 
     try:
-        if not phpbb3_context.verify(password, u.password_hash):
+        if not phpbb3new_context.verify(password, u.password_hash):
             return None
     except ValueError:
-        if not bcrypt.verify(password, u.password_hash):
-            return None
+        return None     # TODO: tell user to refresh password
     except:
         return None
 
