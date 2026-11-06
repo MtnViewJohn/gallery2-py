@@ -381,6 +381,26 @@ def get_titles(start, num, ccOnly):
 def get_title_num(title, ccOnly):
     return flask.json.jsonify({'index': design.CountByTitle(title, ccOnly), 'title': title})
 
+@app.route(u'/newestindex/<year>', defaults={'ccOnly': False})
+@app.route(u'/ccnewestindex/<year>', defaults={'ccOnly': True})
+def get_newest_num(year, ccOnly):
+    return flask.json.jsonify({'index': design.CountByNewest(year, ccOnly), 'year': year})
+
+@app.route(u'/oldestindex/<year>', defaults={'ccOnly': False})
+@app.route(u'/ccoldestindex/<year>', defaults={'ccOnly': True})
+def get_oldest_num(year, ccOnly):
+    return flask.json.jsonify({'index': design.CountByOldest(year, ccOnly), 'year': year})
+
+@app.route(u'/usernameindex/<name>', defaults={'descending': False})
+@app.route(u'/descusernameindex/<name>', defaults={'descending': True})
+def get_name_num(name, descending):
+    return flask.json.jsonify({'index': user.CountByName(name, descending), 'name': name})
+
+@app.route(u'/userjoinedindex/<year>', defaults={'descending': False})
+@app.route(u'/descuserjoinedindex/<year>', defaults={'descending': True})
+def get_joined_num(year, descending):
+    return flask.json.jsonify({'index': user.CountByJoined(year, descending), 'year': year})
+
 @app.route(u'/random/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': False})
 @app.route(u'/ccrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': True})
 def get_random(seed, start, num, ccOnly):

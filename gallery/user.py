@@ -223,5 +223,42 @@ def UsersByPosts(ascending, start, num):
         cursor.execute(query, (start,num))
         return complete(cursor)
 
+def CountByName(name, descending):
+    if not isinstance(name, text) or len(name) == 0 or len(name) > 100:
+        flask.abort(400,u'Bad request.')
+
+    db = gal_utils.get_db()
+    if descending:
+        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) <= 0 AND numposts > 0')
+    else:
+        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) >= 0 AND numposts > 0')
+
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(query, (name,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
+
+        return datum[0]
+
+
+def CountByJoined(year, descending):
+    if not isinstance(year, text) or len(year) == 0 or len(year) > 4:
+        flask.abort(400,u'Bad request.')
+
+    db = gal_utils.get_db()
+    if descending:
+        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) > %s AND numposts > 0')
+    else:
+        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) < %s AND numposts > 0')
+
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(query, (year,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
+
+        return datum[0]
+
 
 

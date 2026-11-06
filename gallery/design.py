@@ -531,6 +531,42 @@ def CountByTitle(title, ccOnly):
 
         return datum[0]
 
+def CountByNewest(year, ccOnly):
+    if not isinstance(year, text) or len(year) == 0 or len(year) > 4:
+        flask.abort(400,u'Bad request.')
+
+    db = gal_utils.get_db()
+    if ccOnly:
+        query = (u'SELECT count(*) FROM gal_designs WHERE YEAR(whenuploaded) > %s AND ' +
+            Design.Query_CC)
+    else:
+        query = u'SELECT count(*) FROM gal_designs WHERE YEAR(whenuploaded) > %s'
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(query, (year,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
+
+        return datum[0]
+
+def CountByOldest(year, ccOnly):
+    if not isinstance(year, text) or len(year) == 0 or len(year) > 4:
+        flask.abort(400,u'Bad request.')
+
+    db = gal_utils.get_db()
+    if ccOnly:
+        query = (u'SELECT count(*) FROM gal_designs WHERE YEAR(whenuploaded) < %s AND ' +
+            Design.Query_CC)
+    else:
+        query = u'SELECT count(*) FROM gal_designs WHERE YEAR(whenuploaded) < %s'
+    with closing(db.cursor(buffered=True)) as cursor:
+        cursor.execute(query, (year,))
+        datum = cursor.fetchone()
+        if datum is None or type(datum[0]) is not int:
+            flask.abort(400,u'Bad request.')
+
+        return datum[0]
+
 def DesignByRandom(seed, start, num, ccOnly):
     db = gal_utils.get_db()
     if ccOnly:
