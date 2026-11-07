@@ -19,6 +19,7 @@ import translate
 import random
 import sys
 import json
+import random
 
 app = flask.Flask(__name__)
 app.config.from_file('config.json', load=json.load)
@@ -420,6 +421,21 @@ def get_poprandom(seed, start, num, ccOnly):
 
     return complete(design.DesignByRandomPopular(seed, start, num, ccOnly), start, num, 
                     u'random/' + str(seed))
+
+@app.route(u'/home/<int:num>')
+def get_homerandom(num):
+    if num < 1 or num > 50:
+        flask.abort(400,u'Bad design count')
+
+    seed = random.randint(1,1000000)
+    designs = design.DesignByRandomPopular(seed, 0, num, False)
+    thumbs = []
+    for d in designs[1]:
+        thumbs.append(d.designid)
+    payload = {
+        'thumbids': thumbs
+    }
+    return flask.json.jsonify(payload)
 
 @app.route(u'/auxinfo/<int:design_id>')
 def getFans(design_id):
