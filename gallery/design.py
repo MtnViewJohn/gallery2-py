@@ -698,7 +698,7 @@ def GetSize(path):
             path = cursor.fetchone()[0]
 
     try:
-        im = Image.open(os.path.join(This_dir, path))
+        im = Image.open(path)
         if im is not None:
             width,height = im.size
             return {'width': width, 'height': height}
