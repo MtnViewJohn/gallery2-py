@@ -655,7 +655,7 @@ def DesignTagged(tag, start, num, ccOnly):
 def AllTags():
     db = gal_utils.get_db()
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
-        cursor.execute(u'SELECT name, count FROM gal_tag_names WHERE count>0 ORDER BY name')
+        cursor.execute(u'SELECT name, count FROM gal_tag_names WHERE name != "" AND count>0 ORDER BY name')
         data = cursor.fetchall()
         if data is None:
             flask.abort(500,u'Failed to get tags')
@@ -682,8 +682,9 @@ def GetTags(design_id):
         if cursor.rowcount > 0:
             rows = cursor.fetchall()
             for row in rows:
-                tags.append(row[0])
-                tagids.append(row[1])
+                if row[0]:
+                    tags.append(row[0])
+                    tagids.append(row[1])
         return (tags, tagids)
 
 def GetSize(path):
@@ -761,18 +762,19 @@ def AddTags(tagnames, design_id):
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
         for tagname in tagnames:
-            cursor.execute(u'INSERT INTO gal_tag_names (name,count) VALUES (%s,1) '
-                u'ON DUPLICATE KEY UPDATE count=count+1', (tagname,))
+            if tagname:
+                cursor.execute(u'INSERT INTO gal_tag_names (name,count) VALUES (%s,1) '
+                    u'ON DUPLICATE KEY UPDATE count=count+1', (tagname,))
 
-            tagid = cursor.lastrowid
-            if tagid == 0:
-                flask.abort(500, u'Failed to add tag:' + tagname)
+                tagid = cursor.lastrowid
+                if tagid == 0:
+                    flask.abort(500, u'Failed to add tag:' + tagname)
 
-            cursor.execute(u'INSERT into gal_tags (item,tag,user,type) VALUES (%s,%s,"","")',
-                (design_id, tagid))
-            if cursor.lastrowid == 0:
-                flask.abort(500, u'Failed to add tag:' + tagname)
-            db.commit()
+                cursor.execute(u'INSERT into gal_tags (item,tag,user,type) VALUES (%s,%s,"","")',
+                    (design_id, tagid))
+                if cursor.lastrowid == 0:
+                    flask.abort(500, u'Failed to add tag:' + tagname)
+        db.commit()
 
 
 
