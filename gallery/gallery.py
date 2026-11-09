@@ -23,7 +23,6 @@ import random
 
 app = flask.Flask(__name__)
 app.config.from_file('config.json', load=json.load)
-os.chdir(app.config['UPLOAD_DIR'])
 if app.debug:
     import logging
     from flask_cors import CORS
@@ -63,7 +62,7 @@ def get_cfdg(design_id):
 
     try:
         fullpath = os.path.join(app.root_path, mydesign.filelocation)
-        with open(fullpath, mode = u'rb') as myfile:
+        with open(mydesign.filelocation, mode = u'rb') as myfile:
             cfdgtxt = myfile.read().decode(u'utf-8')
 
         return flask.json.jsonify({ u'cfdg': cfdgtxt,
@@ -467,8 +466,7 @@ def translateDesign(design_id):
         flask.abort(404,u'Design not found')
     #else:
     try:
-        fullpath = os.path.join(app.root_path, mydesign.filelocation)
-        with open(fullpath, mode = u'rb') as myfile:
+        with open(mydesign.filelocation, mode = u'rb') as myfile:
             cfdg2txt = myfile.read().decode(u'utf-8')
     except Exception:
         flask.abort(500, u'Failed to load cfdg file.')
