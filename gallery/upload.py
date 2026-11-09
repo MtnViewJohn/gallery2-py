@@ -2,6 +2,7 @@ import os
 import os.path
 import io
 import flask
+import errno
 from contextlib import closing
 from flask_login import current_user
 from PIL import Image
