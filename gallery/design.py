@@ -581,10 +581,10 @@ def DesignByRandom(seed, start, num, ccOnly):
 def DesignByRandomPopular(seed, start, num, ccOnly):
     db = gal_utils.get_db()
     if ccOnly:
-        query = (Design.Query_base + u'WHERE numvotes > 7 AND ' + Design.Query_CC + 
+        query = (Design.Query_base + u'WHERE numvotes > 3 AND ' + Design.Query_CC + 
             u' ORDER BY RAND(%s) LIMIT %s,%s')
     else:
-        query = Design.Query_base + u'WHERE numvotes > 7 ORDER BY RAND(%s) LIMIT %s,%s'
+        query = Design.Query_base + u'WHERE numvotes > 3 ORDER BY RAND(%s) LIMIT %s,%s'
     with closing(db.cursor(dictionary=True, buffered=True)) as cursor:
         cursor.execute(query, (seed,start,num))
         return complete(cursor)
