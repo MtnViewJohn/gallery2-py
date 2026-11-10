@@ -408,7 +408,7 @@ def get_random(seed, start, num, ccOnly):
         seed = random.randint(1,1000000000)
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
-    qpath = u'ccrandom/' + str(seed) if ccOnly else u'random/' + str(seed)
+    qpath = u'random/' + str(seed)
 
     return complete(design.DesignByRandom(seed, start, num, ccOnly), start, num, qpath)
 
@@ -419,7 +419,7 @@ def get_poprandom(seed, start, num, ccOnly):
         seed = random.randint(1,1000000000)
     if num < 1 or num > 50:
         flask.abort(400,u'Bad design count')
-    qpath = u'ccpopularrandom/' + str(seed) if ccOnly else u'popularrandom/' + str(seed)
+    qpath = u'popularrandom/' + str(seed)
 
     return complete(design.DesignByRandomPopular(seed, start, num, ccOnly), start, num, qpath)
 
