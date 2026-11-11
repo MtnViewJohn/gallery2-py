@@ -391,15 +391,13 @@ def get_newest_num(year, ccOnly):
 def get_oldest_num(year, ccOnly):
     return flask.json.jsonify({'index': design.CountByOldest(year, ccOnly), 'year': year})
 
-@app.route(u'/usernameindex/<name>', defaults={'descending': False})
-@app.route(u'/descusernameindex/<name>', defaults={'descending': True})
-def get_name_num(name, descending):
-    return flask.json.jsonify({'index': user.CountByName(name, descending), 'name': name})
+@app.route(u'/usernameindex/<name>/<int:descending>/<int:allUsers>')
+def get_name_num(name, descending, allUsers):
+    return flask.json.jsonify({'index': user.CountByName(name, descending, allUsers), 'name': name})
 
-@app.route(u'/userjoinedindex/<year>', defaults={'descending': False})
-@app.route(u'/descuserjoinedindex/<year>', defaults={'descending': True})
-def get_joined_num(year, descending):
-    return flask.json.jsonify({'index': user.CountByJoined(year, descending), 'year': year})
+@app.route(u'/userjoinedindex/<year>/<int:descending>/<int:allUsers>')
+def get_joined_num(year, descending, allUsers):
+    return flask.json.jsonify({'index': user.CountByJoined(year, descending, allUsers), 'year': year})
 
 @app.route(u'/random/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': False})
 @app.route(u'/ccrandom/<int:seed>/<int:start>/<int:num>', defaults={'ccOnly': True})
@@ -647,49 +645,42 @@ def ucomplete(users, start, num, qpath):
 
     return flask.json.jsonify(payload)
 
-@app.route(u'/users/name/<int:start>/<int:num>')
-def usersByName(start, num):
+@app.route(u'/users/name/<int:start>/<string:num>', defaults={'ascending': True})
+@app.route(u'/users/name_d/<int:start>/<string:num>', defaults={'ascending': False})
+def usersByName(start, num, ascending):
+    allUsers = False
+    num = int(num)
+    if num < 0:
+        allUsers = True
+        num = -num
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByName(True,start,num), start, num, u'users/name')
+    return ucomplete(user.UsersByName(ascending,allUsers,start,num), start, num, u'users/name')
 
-@app.route(u'/users/joined/<int:start>/<int:num>')
-def usersByJoindate(start, num):
+@app.route(u'/users/joined/<int:start>/<string:num>', defaults={'ascending': True})
+@app.route(u'/users/joined_d/<int:start>/<string:num>', defaults={'ascending': False})
+def usersByJoindate(start, num, ascending):
+    allUsers = False
+    num = int(num)
+    if num < 0:
+        allUsers = True
+        num = -num
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByJoindate(True,start,num), start, num, u'users/joined')
+    return ucomplete(user.UsersByJoindate(ascending,allUsers,start,num), start, num, u'users/joined')
 
-@app.route(u'/users/posts/<int:start>/<int:num>')
-def usersByPosts(start, num):
+@app.route(u'/users/posts/<int:start>/<string:num>', defaults={'ascending': True})
+@app.route(u'/users/posts_d/<int:start>/<string:num>', defaults={'ascending': False})
+def usersByPosts(start, num, ascending):
+    allUsers = False
+    num = int(num)
+    if num < 0:
+        allUsers = True
+        num = -num
     if num < 1 or num > 50:
         flask.abort(400,u'Bad user count')
 
-    return ucomplete(user.UsersByPosts(True,start,num), start, num, u'users/posts')
-
-@app.route(u'/users/name_d/<int:start>/<int:num>')
-def usersByNameDesc(start, num):
-    if num < 1 or num > 50:
-        flask.abort(400,u'Bad user count')
-
-    return ucomplete(user.UsersByName(False,start,num), start, num, u'users/name_d')
-
-@app.route(u'/users/joined_d/<int:start>/<int:num>')
-def usersByJoindateDesc(start, num):
-    if num < 1 or num > 50:
-        flask.abort(400,u'Bad user count')
-
-    return ucomplete(user.UsersByJoindate(False,start,num), start, num, u'users/joined_d')
-
-@app.route(u'/users/posts_d/<int:start>/<int:num>')
-def usersByPostsDesc(start, num):
-    if num < 1 or num > 50:
-        flask.abort(400,u'Bad user count')
-
-    return ucomplete(user.UsersByPosts(False,start,num), start, num, u'users/posts_d')
-
-
-
-
+    return ucomplete(user.UsersByPosts(ascending,allUsers,start,num), start, num, u'users/posts')
 

@@ -167,7 +167,7 @@ def Newbie(count):
 
 class MiniUser:
     Query_base = (u'SELECT screenname, UNIX_TIMESTAMP(joinedon), numposts FROM '
-                  u'gal_users WHERE numposts>0 ')
+                  u'gal_users ')
 
     def __init__(self, row):
         self.name = row[0]
@@ -199,39 +199,43 @@ def complete(cursor):
     return (cursor.rowcount, ret)
 
 
-def UsersByName(ascending, start, num):
+def UsersByName(ascending, allUsers, start, num):
     direction = u'ASC' if ascending else 'DESC'
-    query = MiniUser.Query_base + u'ORDER BY screenname ' + direction + u' LIMIT %s,%s'
+    postLimit = u'' if allUsers else u'WHERE numposts>0 '
+    query = MiniUser.Query_base + postLimit + u'ORDER BY screenname ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def UsersByJoindate(ascending, start, num):
+def UsersByJoindate(ascending, allUsers, start, num):
     direction = u'ASC' if ascending else 'DESC'
-    query = MiniUser.Query_base + u'ORDER BY joinedon ' + direction + u' LIMIT %s,%s'
+    postLimit = u'' if allUsers else u'WHERE numposts>0 '
+    query = MiniUser.Query_base + postLimit + u'ORDER BY joinedon ' + direction + u' LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def UsersByPosts(ascending, start, num):
+def UsersByPosts(ascending, allUsers, start, num):
     direction = u'ASC' if ascending else 'DESC'
-    query = MiniUser.Query_base + u'ORDER BY numposts ' + direction + u', screenname LIMIT %s,%s'
+    postLimit = u'' if allUsers else u'WHERE numposts>0 '
+    query = MiniUser.Query_base + postLimit + u'ORDER BY numposts ' + direction + u', screenname LIMIT %s,%s'
     db = gal_utils.get_db()
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (start,num))
         return complete(cursor)
 
-def CountByName(name, descending):
+def CountByName(name, descending, allUsers):
     if not isinstance(name, text) or len(name) == 0 or len(name) > 100:
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
+    qsuffix = '' if allUsers else ' AND numposts > 0'
     if descending:
-        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) <= 0 AND numposts > 0')
+        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) <= 0' + qsuffix)
     else:
-        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) >= 0 AND numposts > 0')
+        query = (u'SELECT count(*) FROM gal_users WHERE STRCMP(%s, screenname) >= 0' + qsuffix)
 
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (name,))
@@ -242,15 +246,16 @@ def CountByName(name, descending):
         return datum[0]
 
 
-def CountByJoined(year, descending):
+def CountByJoined(year, descending, allUsers):
     if not isinstance(year, text) or len(year) == 0 or len(year) > 4:
         flask.abort(400,u'Bad request.')
 
     db = gal_utils.get_db()
+    qsuffix = '' if allUsers else ' AND numposts > 0'
     if descending:
-        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) > %s AND numposts > 0')
+        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) > %s' + qsuffix)
     else:
-        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) < %s AND numposts > 0')
+        query = (u'SELECT count(*) FROM gal_users WHERE YEAR(joinedon) < %s' + qsuffix)
 
     with closing(db.cursor(buffered=True)) as cursor:
         cursor.execute(query, (year,))
