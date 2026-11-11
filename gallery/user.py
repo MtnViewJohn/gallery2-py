@@ -20,7 +20,7 @@ def canLogin(username, password):
         if not phpbb3new_context.verify(password, u.password_hash):
             return None
     except ValueError:
-        flask.abort(403, u'Login to forum to refresh password')
+        flask.abort(403, u'Login to the forum to refresh password')
     except:
         return None
 
