@@ -70,7 +70,7 @@ def uploadcfdg(design, file, name):
     try:
         file.save(cfdgpath)
     except OSError:
-        flask.abort(500,u'Cannot write cfdg file')
+        flask.abort(500,u'Cannot write out cfdg file')
 
     if oldcfdg != cfdgpath:
         if os.path.isfile(oldcfdg):
